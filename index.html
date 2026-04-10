@@ -208,6 +208,22 @@
     <div class="form-group"><label>物件ニーズ</label><input type="text" id="f_needs" placeholder="3LDK 予算5000万"></div>
     <div class="form-group"><label>次回訪問予定</label><input type="date" id="f_nextVisit"></div>
     <div class="form-group"><label>メモ</label><textarea id="f_memo"></textarea></div>
+    <!-- 新規追加時のみ表示される初回履歴セクション -->
+    <div id="firstHistorySection" style="display:none;">
+      <div style="border-top:2px solid var(--border);margin:16px 0 14px;padding-top:14px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text);">📝 初回営業履歴を記録（任意）</div>
+        <div class="form-group"><label>タイプ</label>
+          <select id="f_h_type">
+            <option value="visit">🚗 訪問</option><option value="call">📞 電話</option>
+            <option value="preview">🏠 内見</option><option value="contract">📝 契約</option>
+            <option value="dm">✉️ DM</option><option value="other">💬 その他</option>
+          </select>
+        </div>
+        <div class="form-group"><label>日付</label><input type="date" id="f_h_date"></div>
+        <div class="form-group"><label>時刻</label><input type="time" id="f_h_time"></div>
+        <div class="form-group"><label>営業メモ</label><textarea id="f_h_note" placeholder="商談内容など（音声入力も可）"></textarea></div>
+      </div>
+    </div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('modalCustomer')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveCustomer()">保存する</button>
@@ -463,33 +479,73 @@ function loadMapScript(key) {
     });
     googleMap.addListener('mouseup', function(){ clearTimeout(pressTimer); });
     googleMap.addListener('dragstart', function(){ clearTimeout(pressTimer); });
+    // スマホ長押し処理（ピンチ・ダブルタップを除外）
     var mapDiv = document.getElementById('mapEl');
     var touchTimer = null;
+    var touchStartX = 0, touchStartY = 0;
     var ripple = document.getElementById('pressRipple');
+    var lastTapTime = 0;
+
     mapDiv.addEventListener('touchstart', function(e) {
+      // 2本指以上（ピンチ）は無視
+      if (e.touches.length > 1) {
+        clearTimeout(touchTimer);
+        ripple.classList.remove('active');
+        return;
+      }
+      // ダブルタップ検出（300ms以内の2回タップ）→ Google Mapsに任せる
+      var now = Date.now();
+      if (now - lastTapTime < 300) {
+        clearTimeout(touchTimer);
+        ripple.classList.remove('active');
+        lastTapTime = 0;
+        return;
+      }
+      lastTapTime = now;
+
       var touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
       ripple.style.left = touch.clientX + 'px';
       ripple.style.top = touch.clientY + 'px';
       ripple.classList.add('active');
-      var clientX = touch.clientX, clientY = touch.clientY;
+
+      // 長押し700ms後に発火
       touchTimer = setTimeout(function() {
-        var mapBounds = mapDiv.getBoundingClientRect();
-        var proj = googleMap.getProjection();
-        var bounds = googleMap.getBounds();
-        if (proj && bounds) {
+        ripple.classList.remove('active');
+        // Google Maps APIで座標を取得（クリックイベント経由が確実）
+        var latLng = googleMap.getProjection() ? (function(){
+          var mapBounds = mapDiv.getBoundingClientRect();
+          var proj = googleMap.getProjection();
+          var bounds = googleMap.getBounds();
+          if (!proj || !bounds) return null;
           var ne = proj.fromLatLngToPoint(bounds.getNorthEast());
           var sw = proj.fromLatLngToPoint(bounds.getSouthWest());
           var scale = Math.pow(2, googleMap.getZoom());
-          var worldX = sw.x + ((clientX - mapBounds.left) / scale);
-          var worldY = ne.y + ((clientY - mapBounds.top) / scale);
-          var latLng = proj.fromPointToLatLng(new google.maps.Point(worldX, worldY));
-          ripple.classList.remove('active');
-          addCustomerAtLatLng(latLng.lat(), latLng.lng());
-        }
+          var worldX = sw.x + ((touchStartX - mapBounds.left) / scale);
+          var worldY = ne.y + ((touchStartY - mapBounds.top) / scale);
+          return proj.fromPointToLatLng(new google.maps.Point(worldX, worldY));
+        })() : null;
+        if (latLng) addCustomerAtLatLng(latLng.lat(), latLng.lng());
       }, 700);
-    }, {passive:true});
-    mapDiv.addEventListener('touchend', function(){ clearTimeout(touchTimer); ripple.classList.remove('active'); });
-    mapDiv.addEventListener('touchmove', function(){ clearTimeout(touchTimer); ripple.classList.remove('active'); });
+    }, {passive: true});
+
+    mapDiv.addEventListener('touchend', function(e) {
+      clearTimeout(touchTimer);
+      ripple.classList.remove('active');
+    }, {passive: true});
+
+    mapDiv.addEventListener('touchmove', function(e) {
+      // 指が少し動いたらキャンセル（10px以上）
+      if (e.touches.length > 0) {
+        var dx = e.touches[0].clientX - touchStartX;
+        var dy = e.touches[0].clientY - touchStartY;
+        if (Math.sqrt(dx*dx + dy*dy) > 10) {
+          clearTimeout(touchTimer);
+          ripple.classList.remove('active');
+        }
+      }
+    }, {passive: true});
     updateMapMarkers();
     centerToCurrentLocation();
   };
@@ -532,7 +588,22 @@ function addMarker(c) {
 }
 function centerToCurrentLocation() {
   if (!navigator.geolocation || !googleMap) return;
-  navigator.geolocation.getCurrentPosition(function(p){ googleMap.panTo({lat:p.coords.latitude, lng:p.coords.longitude}); });
+  navigator.geolocation.getCurrentPosition(function(p){
+    var latlng = {lat: p.coords.latitude, lng: p.coords.longitude};
+    googleMap.panTo(latlng);
+    if (window._myLocationMarker) window._myLocationMarker.setMap(null);
+    if (window._myLocationRing) window._myLocationRing.setMap(null);
+    window._myLocationRing = new google.maps.Marker({
+      position: latlng, map: googleMap,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 20, fillColor: '#4285F4', fillOpacity: 0.15, strokeColor: '#4285F4', strokeWeight: 1.5 },
+      zIndex: 998
+    });
+    window._myLocationMarker = new google.maps.Marker({
+      position: latlng, map: googleMap, title: '現在地',
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#4285F4', fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 3 },
+      zIndex: 999
+    });
+  });
 }
 function addPinAtCurrentLocation() {
   if (!navigator.geolocation) { alert('位置情報が使えません'); return; }
@@ -540,23 +611,28 @@ function addPinAtCurrentLocation() {
   navigator.geolocation.getCurrentPosition(function(p){ addCustomerAtLatLng(p.coords.latitude, p.coords.longitude); }, function(){ showToast('位置情報の取得に失敗しました'); });
 }
 function addCustomerAtLatLng(lat, lng) {
-  pendingLatLng = {lat:lat, lng:lng};
+  pendingLatLng = {lat: lat, lng: lng};
   showToast('📍 住所を取得中...');
-  if (window.google) {
-    new google.maps.Geocoder().geocode({location:{lat:lat,lng:lng}, language:'ja'}, function(res, status) {
-      var addr = '';
-      if (status === 'OK' && res && res.length > 0) {
-        for (var i=0; i<res.length; i++) {
-          if (res[i].formatted_address && res[i].formatted_address.indexOf('日本') !== -1) {
-            addr = res[i].formatted_address.replace('日本、','').replace('日本,','').trim();
-            break;
+  if (window.google && window.google.maps) {
+    new google.maps.Geocoder().geocode(
+      { location: {lat: lat, lng: lng} },
+      function(res, status) {
+        var addr = '';
+        if (status === 'OK' && res && res.length > 0) {
+          // 丁目レベルの詳細住所を優先して取得
+          for (var i = 0; i < res.length; i++) {
+            var fa = res[i].formatted_address || '';
+            // 「日本、〒」形式から住所部分だけ抽出
+            fa = fa.replace(/^日本[、,]\s*/, '').replace(/^〒\d{3}-\d{4}\s*/, '').trim();
+            if (fa) { addr = fa; break; }
           }
         }
-        if (!addr) addr = res[0].formatted_address.replace('日本、','').replace('日本,','').trim();
+        openAddCustomer(addr);
       }
-      openAddCustomer(addr);
-    });
-  } else openAddCustomer('');
+    );
+  } else {
+    openAddCustomer('');
+  }
 }
 function renderPseudoPins() {
   var list = document.getElementById('pseudoPinList');
@@ -723,6 +799,7 @@ function editCurrentCustomer() {
   document.getElementById('f_nextVisit').value = c.nextVisit||'';
   document.getElementById('f_memo').value = c.memo||'';
   document.getElementById('modalCustomerTitle').textContent = '顧客を編集';
+  document.getElementById('firstHistorySection').style.display = 'none';
   closeDetail();
   document.getElementById('modalCustomer').classList.add('open');
 }
@@ -747,6 +824,13 @@ function openAddCustomer(prefillAddr) {
   document.getElementById('f_needs').value = '';
   document.getElementById('f_nextVisit').value = '';
   document.getElementById('f_memo').value = '';
+  // 初回履歴セクションを表示・初期化
+  document.getElementById('firstHistorySection').style.display = 'block';
+  var now = new Date();
+  document.getElementById('f_h_type').value = 'visit';
+  document.getElementById('f_h_date').value = now.toISOString().split('T')[0];
+  document.getElementById('f_h_time').value = now.toTimeString().slice(0,5);
+  document.getElementById('f_h_note').value = '';
   document.getElementById('modalCustomerTitle').textContent = prefillAddr ? '📍 この場所に顧客追加' : '顧客を追加';
   document.getElementById('modalCustomer').classList.add('open');
 }
@@ -768,9 +852,30 @@ function saveCustomer() {
     if (orig && orig.address !== data.address) { data.lat = null; data.lng = null; }
     else if (orig) { data.lat = orig.lat||null; data.lng = orig.lng||null; }
     updateCustomerInDb(editingId, data).then(function(){ showToast('✅ 顧客情報を更新しました'); });
+    document.getElementById('firstHistorySection').style.display = 'none';
   } else {
     if (pendingLatLng) { data.lat = pendingLatLng.lat; data.lng = pendingLatLng.lng; pendingLatLng = null; }
-    addCustomerToDb(data).then(function(){ showToast('✅ 顧客を追加しました'); });
+    addCustomerToDb(data).then(function(docRef) {
+      // 初回履歴が入力されていれば一緒に保存
+      var hNote = document.getElementById('f_h_note').value.trim();
+      var hDate = document.getElementById('f_h_date').value;
+      var hType = document.getElementById('f_h_type').value;
+      var hTime = document.getElementById('f_h_time').value;
+      if (hDate) {
+        addHistoryToDb({
+          customerId: docRef.id,
+          type: hType,
+          date: hDate,
+          time: hTime,
+          note: hNote,
+          statusChange: null
+        });
+        showToast('✅ 顧客と履歴を追加しました');
+      } else {
+        showToast('✅ 顧客を追加しました');
+      }
+    });
+    document.getElementById('firstHistorySection').style.display = 'none';
   }
   closeModal('modalCustomer');
 }
