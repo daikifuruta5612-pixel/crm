@@ -406,7 +406,8 @@ window._db = db; window._col = collection; window._doc = doc;
 window._addDoc = addDoc; window._updateDoc = updateDoc; window._deleteDoc = deleteDoc;
 window._onSnapshot = onSnapshot; window._query = query; window._orderBy = orderBy;
 window._firebaseReady = true;
-window.startFirestoreSync();
+// 通常scriptの読み込み完了後に同期開始
+window.dispatchEvent(new Event('firebaseReady'));
 </script>
 
 <script>
@@ -708,7 +709,6 @@ function addMarker(c) {
 
   mapMarkers.push({marker:marker, infoWin:infoWin, customerId:c.id});
   mapInfoWindows.push(infoWin);
-}
 }
 
 // 全吹き出し表示/非表示
@@ -1112,20 +1112,29 @@ document.querySelectorAll('.modal-overlay').forEach(function(o){
 });
 
 (function(){
-  var key=getApiKey();
-  if(key) document.getElementById('apiKeyInput').value=key;
+  var key = getApiKey();
+  if (key) document.getElementById('apiKeyInput').value = key;
   renderPseudoPins();
-  // APIキーが保存済みなら自動で地図を起動
-  if(key) {
-    document.getElementById('mapSetupPanel').style.display='none';
-    document.getElementById('mapRealPanel').style.display='block';
-    // Google Maps読み込みはFirebase同期後に実行
-    var mapInitTimer = setInterval(function(){
-      if(window._firebaseReady) {
-        clearInterval(mapInitTimer);
-        loadMapScript(key);
-      }
-    }, 100);
+
+  // Firebase準備完了イベントを受け取って同期開始
+  window.addEventListener('firebaseReady', function() {
+    startFirestoreSync();
+    // APIキーが保存済みなら地図も起動
+    if (key) {
+      document.getElementById('mapSetupPanel').style.display = 'none';
+      document.getElementById('mapRealPanel').style.display = 'block';
+      loadMapScript(key);
+    }
+  });
+
+  // すでにfirebaseReadyが発火済みの場合（まれ）
+  if (window._firebaseReady) {
+    startFirestoreSync();
+    if (key) {
+      document.getElementById('mapSetupPanel').style.display = 'none';
+      document.getElementById('mapRealPanel').style.display = 'block';
+      loadMapScript(key);
+    }
   }
 })();
 </script>
