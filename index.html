@@ -508,7 +508,7 @@ function loadMapScript(key) {
     var el2 = document.getElementById('mapEl');
     el2.style.cssText = 'width:100%;height:100%;'; el2.innerHTML = '';
     googleMap = new google.maps.Map(el2, {
-      center:{lat:35.6812,lng:139.7671}, zoom:13,
+      center:{lat:35.6812,lng:139.7671}, zoom:17,
       mapTypeControl:false, streetViewControl:false, fullscreenControl:false, gestureHandling:'greedy'
     });
     // PC long press
@@ -516,37 +516,70 @@ function loadMapScript(key) {
     googleMap.addListener('mousedown', function(e){ pressTimer = setTimeout(function(){ addCustomerAtLatLng(e.latLng.lat(),e.latLng.lng()); },700); });
     googleMap.addListener('mouseup', function(){ clearTimeout(pressTimer); });
     googleMap.addListener('dragstart', function(){ clearTimeout(pressTimer); });
-    // スマホタッチ
+
+    // ===== スマホタッチ（完全修正版）=====
     var mapDiv = document.getElementById('mapEl');
-    var touchTimer=null, touchStartX=0, touchStartY=0, lastTapTime=0;
+    var touchTimer = null;
+    var touchStartX = 0, touchStartY = 0;
+    var touchStartTime = 0;
     var ripple = document.getElementById('pressRipple');
+
     mapDiv.addEventListener('touchstart', function(e) {
-      if (e.touches.length > 1) { clearTimeout(touchTimer); ripple.classList.remove('active'); return; }
-      var now = Date.now();
-      if (now - lastTapTime < 300) { clearTimeout(touchTimer); ripple.classList.remove('active'); lastTapTime=0; return; }
-      lastTapTime = now;
-      var touch = e.touches[0];
-      touchStartX=touch.clientX; touchStartY=touch.clientY;
-      ripple.style.left=touch.clientX+'px'; ripple.style.top=touch.clientY+'px'; ripple.classList.add('active');
-      touchTimer = setTimeout(function(){
+      // 2本指以上（ピンチ）は一切無視
+      if (e.touches.length >= 2) {
+        clearTimeout(touchTimer);
         ripple.classList.remove('active');
-        var proj=googleMap.getProjection(), bounds=googleMap.getBounds();
-        if (proj&&bounds) {
-          var mb=mapDiv.getBoundingClientRect();
-          var ne=proj.fromLatLngToPoint(bounds.getNorthEast()), sw=proj.fromLatLngToPoint(bounds.getSouthWest());
-          var scale=Math.pow(2,googleMap.getZoom());
-          var latlng=proj.fromPointToLatLng(new google.maps.Point(sw.x+((touchStartX-mb.left)/scale), ne.y+((touchStartY-mb.top)/scale)));
-          addCustomerAtLatLng(latlng.lat(),latlng.lng());
-        }
-      }, 700);
-    }, {passive:true});
-    mapDiv.addEventListener('touchend', function(){ clearTimeout(touchTimer); ripple.classList.remove('active'); }, {passive:true});
-    mapDiv.addEventListener('touchmove', function(e){
-      if (e.touches.length>0) {
-        var dx=e.touches[0].clientX-touchStartX, dy=e.touches[0].clientY-touchStartY;
-        if (Math.sqrt(dx*dx+dy*dy)>10) { clearTimeout(touchTimer); ripple.classList.remove('active'); }
+        return;
       }
-    }, {passive:true});
+      var touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+      ripple.style.left = touch.clientX + 'px';
+      ripple.style.top = touch.clientY + 'px';
+      ripple.classList.add('active');
+
+      // 長押し800msで顧客追加
+      touchTimer = setTimeout(function() {
+        ripple.classList.remove('active');
+        var proj = googleMap.getProjection();
+        var bounds = googleMap.getBounds();
+        if (proj && bounds) {
+          var mb = mapDiv.getBoundingClientRect();
+          var ne = proj.fromLatLngToPoint(bounds.getNorthEast());
+          var sw = proj.fromLatLngToPoint(bounds.getSouthWest());
+          var scale = Math.pow(2, googleMap.getZoom());
+          var latlng = proj.fromPointToLatLng(new google.maps.Point(
+            sw.x + ((touchStartX - mb.left) / scale),
+            ne.y + ((touchStartY - mb.top) / scale)
+          ));
+          addCustomerAtLatLng(latlng.lat(), latlng.lng());
+        }
+      }, 800);
+    }, {passive: true});
+
+    mapDiv.addEventListener('touchend', function(e) {
+      clearTimeout(touchTimer);
+      ripple.classList.remove('active');
+    }, {passive: true});
+
+    mapDiv.addEventListener('touchmove', function(e) {
+      // 2本指になったら即キャンセル（ピンチ対策）
+      if (e.touches.length >= 2) {
+        clearTimeout(touchTimer);
+        ripple.classList.remove('active');
+        return;
+      }
+      // 指が15px以上動いたらキャンセル（スクロール・ドラッグ対策）
+      if (e.touches.length > 0) {
+        var dx = e.touches[0].clientX - touchStartX;
+        var dy = e.touches[0].clientY - touchStartY;
+        if (Math.sqrt(dx*dx + dy*dy) > 15) {
+          clearTimeout(touchTimer);
+          ripple.classList.remove('active');
+        }
+      }
+    }, {passive: true});
     updateMapMarkers(); centerToCurrentLocation();
   };
   var s=document.createElement('script');
@@ -628,6 +661,16 @@ function makePinIcon(color, emoji) {
   };
 }
 
+// 履歴タイプ別SVGアイコン（統一デザイン）
+var typeIconSvg = {
+  visit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8l4 2v5h-4"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+  call:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  preview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  contract: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+  dm:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  other: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+};
+var typeIconBg = { visit:'#3b82f6', call:'#22c55e', preview:'#f59e0b', contract:'#8b5cf6', dm:'#06b6d4', other:'#64748b' };
 var statusEmoji = { hot:'🔥', warm:'♨', cool:'💧', cold:'❄' };
 
 function addMarker(c) {
@@ -639,26 +682,33 @@ function addMarker(c) {
     zIndex: ({hot:4,warm:3,cool:2,cold:1}[c.status]||1)
   });
   var infoWin = new google.maps.InfoWindow({content:buildInfoContent(c)});
+
   // PC: ホバーで吹き出し
   marker.addListener('mouseover', function(){ infoWin.open(googleMap, marker); });
   marker.addListener('mouseout', function(){ if(!allBubblesOpen) infoWin.close(); });
-  // スマホ: ワンタップ→吹き出し、ダブルタップ→詳細
-  var lastClickTime = 0;
-  marker.addListener('click', function(){
-    var now = Date.now();
-    if (now - lastClickTime < 400) {
-      // ダブルタップ → 詳細
+
+  // スマホ・PC共通: クリックで吹き出し表示のみ（詳細はダブルクリック）
+  var clickTimer = null;
+  marker.addListener('click', function() {
+    if (clickTimer) {
+      // ダブルクリック → 詳細を開く
+      clearTimeout(clickTimer);
+      clickTimer = null;
       infoWin.close();
       openDetail(c.id);
     } else {
-      // シングルタップ → 吹き出し
-      infoWin.setContent(buildInfoContent(c));
-      infoWin.open(googleMap, marker);
+      // シングルクリック → 吹き出しのみ
+      clickTimer = setTimeout(function() {
+        clickTimer = null;
+        infoWin.setContent(buildInfoContent(c));
+        infoWin.open(googleMap, marker);
+      }, 280);
     }
-    lastClickTime = now;
   });
+
   mapMarkers.push({marker:marker, infoWin:infoWin, customerId:c.id});
   mapInfoWindows.push(infoWin);
+}
 }
 
 // 全吹き出し表示/非表示
@@ -689,20 +739,28 @@ function addPinAtCurrentLocation() {
   navigator.geolocation.getCurrentPosition(function(p){ addCustomerAtLatLng(p.coords.latitude,p.coords.longitude); }, function(){ showToast('位置情報の取得に失敗しました'); });
 }
 function addCustomerAtLatLng(lat, lng) {
-  pendingLatLng = {lat:lat,lng:lng};
+  pendingLatLng = {lat: lat, lng: lng};
   showToast('📍 住所を取得中...');
-  if (window.google&&window.google.maps) {
-    new google.maps.Geocoder().geocode({location:{lat:lat,lng:lng}}, function(res,status){
-      var addr='';
-      if (status==='OK'&&res&&res.length>0) {
-        for (var i=0;i<res.length;i++) {
-          var fa=(res[i].formatted_address||'').replace(/^日本[、,]\s*/,'').replace(/^〒\d{3}-\d{4}\s*/,'').trim();
-          if (fa) { addr=fa; break; }
+  if (window.google && window.google.maps) {
+    new google.maps.Geocoder().geocode(
+      { location: {lat: lat, lng: lng}, language: 'ja' },
+      function(res, status) {
+        var addr = '';
+        if (status === 'OK' && res && res.length > 0) {
+          // 最も詳細な住所レベルのものを選択
+          for (var i = 0; i < res.length; i++) {
+            var fa = res[i].formatted_address || '';
+            // 「日本、〒xxx-xxxx 住所」→ 住所だけ抽出
+            fa = fa.replace(/^日本[、,\s]+/, '').replace(/^〒[\d\-]+\s*/, '').trim();
+            if (fa && fa.length > 3) { addr = fa; break; }
+          }
         }
+        openAddCustomer(addr);
       }
-      openAddCustomer(addr);
-    });
-  } else openAddCustomer('');
+    );
+  } else {
+    openAddCustomer('');
+  }
 }
 
 // ピン一覧パネル
@@ -874,11 +932,13 @@ function renderHistories() {
     var c=customers.find(function(x){return x.id===h.customerId;});
     return '<div class="card" style="cursor:default;">'
       +'<div style="display:flex;gap:10px;align-items:flex-start;">'
-      +'<span style="font-size:22px;flex-shrink:0;">'+(typeIcon[h.type]||'💬')+'</span>'
+      +getTypeIconHtml(h.type)
       +'<div style="flex:1;"><div style="font-weight:600;font-size:15px;">'+(c?c.name:'不明')+'</div>'
       +'<div style="font-size:12px;color:var(--text-sub);margin-top:2px;">'+(typeLabel[h.type]||'')+' | '+h.date+(h.time?' '+h.time:'')+'</div>'
       +(h.note?'<div style="font-size:13px;margin-top:5px;">'+h.note+'</div>':'')+'</div>'
-      +'<button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">🗑</button>'
+      +'<button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+      +'</button>'
       +'</div></div>';
   }).join('');
 }
@@ -930,16 +990,23 @@ function openDetail(id) {
   renderDetailHistory(id);
   document.getElementById('detailPanel').classList.add('open');
 }
+function getTypeIconHtml(type) {
+  var bg = typeIconBg[type] || '#64748b';
+  var svg = typeIconSvg[type] || typeIconSvg.other;
+  return '<div style="width:36px;height:36px;border-radius:10px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;color:white;">'+svg+'</div>';
+}
 function renderDetailHistory(id) {
   var cHist=histories.filter(function(h){return h.customerId===id;});
   document.getElementById('detailHistoryList').innerHTML=cHist.length
     ? cHist.map(function(h){
-        return '<div class="hist-item"><span style="font-size:18px;flex-shrink:0;margin-top:1px;">'+(typeIcon[h.type]||'💬')+'</span>'
-          +'<div class="hist-body"><div style="font-size:13px;font-weight:600;">'+(typeLabel[h.type]||'その他')+'</div>'
+        return '<div class="hist-item">'+getTypeIconHtml(h.type)
+          +'<div class="hist-body"><div style="font-size:13px;font-weight:600;color:var(--text);">'+(typeLabel[h.type]||'その他')+'</div>'
           +'<div class="hist-meta">'+h.date+(h.time?' '+h.time:'')+'</div>'
           +(h.note?'<div class="hist-note">'+h.note+'</div>':'')
           +(h.statusChange?'<div style="font-size:12px;color:var(--primary);margin-top:2px;">→ '+statusLabel[h.statusChange]+'</div>':'')
-          +'</div><button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">🗑</button></div>';
+          +'</div><button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
+          +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+          +'</button></div>';
       }).join('')
     : '<div style="color:var(--text-sub);font-size:13px;padding:10px 0;text-align:center;">履歴なし</div>';
 }
@@ -961,7 +1028,14 @@ function editCurrentCustomer() {
 }
 function deleteCurrentCustomer() {
   if (!confirm('この顧客を削除しますか？')) return;
-  var id=currentDetailId; closeDetail();
+  var id = currentDetailId; closeDetail();
+  // マップ上のマーカーを即削除
+  var idx = mapMarkers.findIndex(function(m){ return m.customerId === id; });
+  if (idx !== -1) {
+    mapMarkers[idx].marker.setMap(null);
+    mapMarkers[idx].infoWin.close();
+    mapMarkers.splice(idx, 1);
+  }
   deleteCustomerFromDb(id).then(function(){
     showToast('🗑️ 顧客を削除しました');
     histories.filter(function(h){return h.customerId===id;}).forEach(function(h){deleteHistoryFromDb(h.id);});
