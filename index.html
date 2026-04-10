@@ -577,13 +577,49 @@ function geocodeAndAddMarker(c) {
     }
   });
 }
+function buildInfoContent(c) {
+  // 直近の営業履歴を取得
+  var cHist = histories.filter(function(h){ return h.customerId === c.id; });
+  cHist.sort(function(a,b){ return b.timestamp - a.timestamp; });
+  var latest = cHist.length ? cHist[0] : null;
+  var statusColors = { hot:'#ef4444', warm:'#f97316', cool:'#3b82f6', cold:'#6b7280' };
+  var sColor = statusColors[c.status] || '#2563eb';
+
+  var html = '<div style="font-family:-apple-system,sans-serif;padding:4px 2px;min-width:160px;max-width:220px;">';
+  // 名前 + ステータスバッジ
+  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">';
+  html += '<span style="font-weight:700;font-size:14px;color:#1e293b;">'+c.name+'</span>';
+  html += '<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:'+sColor+'20;color:'+sColor+';font-weight:600;">'+statusLabel[c.status]+'</span>';
+  html += '</div>';
+  // 直近履歴
+  if (latest) {
+    html += '<div style="background:#f1f5f9;border-radius:8px;padding:7px 9px;">';
+    html += '<div style="font-size:11px;color:#64748b;margin-bottom:3px;">📋 直近の履歴</div>';
+    html += '<div style="font-size:13px;font-weight:600;color:#1e293b;">'+(typeIcon[latest.type]||'💬')+' '+(typeLabel[latest.type]||'')+'</div>';
+    html += '<div style="font-size:11px;color:#64748b;margin-top:2px;">'+latest.date+(latest.time?' '+latest.time:'')+'</div>';
+    if (latest.note) html += '<div style="font-size:12px;color:#334155;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">'+latest.note+'</div>';
+  } else {
+    html += '<div style="background:#f1f5f9;border-radius:8px;padding:7px 9px;font-size:12px;color:#94a3b8;">履歴なし</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
 function addMarker(c) {
   var marker = new google.maps.Marker({
     position:{lat:c.lat, lng:c.lng}, map:googleMap, title:c.name,
     icon:{path:google.maps.SymbolPath.CIRCLE, scale:10, fillColor:markerColor[c.status]||'#2563eb', fillOpacity:1, strokeColor:'#fff', strokeWeight:2.5}
   });
-  var info = new google.maps.InfoWindow({content:'<div style="font-family:sans-serif;padding:2px;"><b>'+c.name+'</b><br><small style="color:#64748b;">'+(c.address||'')+'</small></div>'});
-  marker.addListener('click', function(){ info.open(googleMap, marker); setTimeout(function(){ openDetail(c.id); }, 200); });
+  var info = new google.maps.InfoWindow({ content: buildInfoContent(c) });
+  // ホバーで吹き出し表示
+  marker.addListener('mouseover', function(){ info.open(googleMap, marker); });
+  marker.addListener('mouseout', function(){ info.close(); });
+  // タップ（スマホ）でも表示 → 詳細画面へ
+  marker.addListener('click', function(){
+    info.setContent(buildInfoContent(c));
+    info.open(googleMap, marker);
+    setTimeout(function(){ openDetail(c.id); }, 300);
+  });
   mapMarkers.push(marker);
 }
 function centerToCurrentLocation() {
