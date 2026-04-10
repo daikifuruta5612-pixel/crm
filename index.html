@@ -7,340 +7,212 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --bg: #f1f5f9;
-    --card: #ffffff;
-    --text: #1e293b;
-    --text-sub: #64748b;
-    --border: #e2e8f0;
-    --hot: #ef4444;
-    --warm: #f97316;
-    --cool: #3b82f6;
-    --cold: #6b7280;
-    --success: #22c55e;
-    --danger: #ef4444;
-    --nav-h: 60px;
-    --tab-h: 56px;
+    --primary: #2563eb; --bg: #f1f5f9; --card: #ffffff;
+    --text: #1e293b; --text-sub: #64748b; --border: #e2e8f0;
+    --hot: #ef4444; --warm: #f97316; --cool: #3b82f6; --cold: #6b7280;
+    --danger: #ef4444; --nav-h: 56px; --tab-h: 56px;
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overscroll-behavior: none; }
-  
-  /* NAV */
-  .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); background: var(--primary); color: #fff; display: flex; align-items: center; padding: 0 16px; z-index: 100; gap: 12px; }
-  .nav-title { font-size: 18px; font-weight: 700; flex: 1; }
-  .nav-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; }
-  .nav-btn:active { opacity: 0.8; }
-
-  /* TABS */
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); overscroll-behavior: none; }
+  .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); background: var(--primary); color: #fff; display: flex; align-items: center; padding: 0 14px; z-index: 100; gap: 10px; }
+  .nav-title { font-size: 17px; font-weight: 700; flex: 1; }
+  .nav-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 7px 13px; border-radius: 8px; font-size: 13px; cursor: pointer; white-space: nowrap; }
   .tabs { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-h); background: var(--card); border-top: 1px solid var(--border); display: flex; z-index: 100; }
-  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: var(--text-sub); cursor: pointer; gap: 3px; transition: color 0.2s; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: var(--text-sub); cursor: pointer; gap: 2px; }
   .tab.active { color: var(--primary); }
-  .tab-icon { font-size: 22px; }
-
-  /* PAGES */
+  .tab-icon { font-size: 20px; }
   .page { position: fixed; top: var(--nav-h); left: 0; right: 0; bottom: var(--tab-h); overflow-y: auto; display: none; padding: 12px; }
   .page.active { display: block; }
   #page-map { padding: 0; overflow: hidden; }
-
-  /* CARDS */
-  .card { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-  .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  #mapWrapper { width: 100%; height: 100%; display: flex; flex-direction: column; }
+  #mapSetupPanel { overflow-y: auto; flex: 1; background: var(--bg); padding: 12px; }
+  #mapRealPanel { flex: 1; display: none; position: relative; }
+  #mapEl { width: 100%; height: 100%; }
+  .map-ctrl { position: absolute; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
+  .map-ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+  .map-ctrl-add { background: var(--primary); color: #fff; }
+  .map-ctrl-locate { background: var(--card); color: var(--text); }
+  .setup-card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+  .setup-title { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+  .setup-steps { background: var(--bg); border-radius: 10px; padding: 12px; margin: 10px 0; }
+  .setup-step { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+  .setup-step:last-child { border-bottom: none; }
+  .setup-step b { color: var(--primary); }
+  .key-row { display: flex; gap: 8px; margin-top: 10px; }
+  .key-row input { flex: 1; padding: 11px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; background: var(--bg); color: var(--text); }
+  .key-row input:focus { outline: none; border-color: var(--primary); background: #fff; }
+  .key-row button { padding: 11px 16px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .pin-list-card { background: var(--card); border-radius: 14px; padding: 16px; }
+  .pin-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .pin-item:last-child { border-bottom: none; }
+  .card { background: var(--card); border-radius: 12px; padding: 13px; margin-bottom: 9px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer; }
+  .card-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
   .card-name { font-weight: 600; font-size: 15px; flex: 1; }
-
-  /* STATUS BADGE */
-  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
   .badge-hot { background: #fee2e2; color: var(--hot); }
   .badge-warm { background: #ffedd5; color: var(--warm); }
   .badge-cool { background: #dbeafe; color: var(--cool); }
   .badge-cold { background: #f1f5f9; color: var(--cold); }
-
-  /* FILTER CHIPS */
+  .card-sub { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+  .card-alert { font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .card-alert.over { color: var(--danger); }
+  .card-alert.today { color: var(--warm); }
+  .card-alert.soon { color: var(--primary); }
   .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
-  .chip { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .chip { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; }
   .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-
-  /* FAB */
-  .fab { position: fixed; bottom: calc(var(--tab-h) + 16px); right: 16px; width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: #fff; border: none; font-size: 26px; cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.4); display: flex; align-items: center; justify-content: center; z-index: 90; transition: transform 0.15s; }
-  .fab:active { transform: scale(0.92); }
-
-  /* MODAL */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; }
   .modal-overlay.open { display: flex; }
-  .modal { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; padding: 20px 16px; }
+  .modal { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-height: 92vh; overflow-y: auto; padding: 20px 16px 30px; }
   .modal-title { font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 16px; }
-  .form-group { margin-bottom: 14px; }
+  .form-group { margin-bottom: 13px; }
   label { font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px; }
-  input, select, textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; font-family: inherit; background: var(--bg); color: var(--text); }
+  input[type=text], input[type=tel], input[type=date], input[type=time], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 15px; font-family: inherit; background: var(--bg); color: var(--text);
+  }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); background: #fff; }
-  textarea { height: 70px; resize: none; }
+  textarea { height: 68px; resize: none; }
   .btn-row { display: flex; gap: 10px; margin-top: 16px; }
   .btn { flex: 1; padding: 13px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
   .btn-primary { background: var(--primary); color: #fff; }
   .btn-cancel { background: var(--bg); color: var(--text-sub); }
-  .btn:active { opacity: 0.85; }
-
-  /* DETAIL PANEL */
   .detail-panel { position: fixed; inset: 0; background: var(--card); z-index: 150; display: none; flex-direction: column; overflow-y: auto; }
   .detail-panel.open { display: flex; }
-  .detail-header { background: var(--primary); color: #fff; padding: 16px; padding-top: calc(var(--nav-h) - 8px); display: flex; align-items: center; gap: 12px; }
-  .detail-back { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 4px; }
-  .detail-name { font-size: 18px; font-weight: 700; flex: 1; }
-  .detail-body { padding: 16px; }
-  .info-row { display: flex; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .info-label { width: 90px; font-size: 13px; color: var(--text-sub); flex-shrink: 0; }
+  .detail-header { background: var(--primary); color: #fff; padding: 14px 16px; padding-top: calc(var(--nav-h) - 4px); display: flex; align-items: center; gap: 10px; }
+  .detail-back { background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; line-height: 1; }
+  .detail-name { font-size: 17px; font-weight: 700; flex: 1; }
+  .detail-body { padding: 14px; }
+  .info-row { display: flex; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .info-label { width: 80px; font-size: 13px; color: var(--text-sub); flex-shrink: 0; }
   .info-value { font-size: 14px; flex: 1; }
-  .section-title { font-size: 14px; font-weight: 700; color: var(--text-sub); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .history-item { background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start; }
-  .history-type { font-size: 18px; }
-  .history-body { flex: 1; }
-  .history-meta { font-size: 12px; color: var(--text-sub); }
-  .history-note { font-size: 14px; margin-top: 2px; }
-  .del-btn { background: none; border: none; color: var(--danger); font-size: 18px; cursor: pointer; padding: 2px; }
+  .sec-title { font-size: 13px; font-weight: 700; color: var(--text-sub); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
   .action-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .action-btn { padding: 10px 16px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-  .action-btn:active { background: var(--bg); }
-
-  /* ALERT */
-  .alert-item { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 10px; border-left: 4px solid; }
-  .alert-over { border-color: var(--danger); }
-  .alert-today { border-color: var(--warm); }
-  .alert-soon { border-color: var(--primary); }
-  .alert-label { font-size: 12px; font-weight: 700; margin-bottom-4px; }
-  .alert-over .alert-label { color: var(--danger); }
-  .alert-today .alert-label { color: var(--warm); }
-  .alert-soon .alert-label { color: var(--primary); }
-
-  /* MAP */
-  #map { width: 100%; height: 100%; min-height: 400px; }
-  .map-loading { display: flex; align-items: center; justify-content: center; height: 100%; background: #e8eaf0; flex-direction: column; gap: 12px; color: var(--text-sub); font-size: 15px; }
-  .map-key-banner { position: absolute; top: var(--nav-h); left: 0; right: 0; background: #fff3cd; padding: 10px 14px; font-size: 13px; z-index: 50; border-bottom: 1px solid #ffc107; display: none; }
-  .map-key-banner.show { display: block; }
-
-  /* MAP FAB + controls */
-  .map-fab { position: fixed; bottom: calc(var(--tab-h) + 16px); right: 16px; width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: #fff; border: none; font-size: 26px; cursor: pointer; box-shadow: 0 4px 12px rgba(37,99,235,0.4); display: none; align-items: center; justify-content: center; z-index: 90; }
-  .map-fab.visible { display: flex; }
-  .map-center-btn { position: fixed; bottom: calc(var(--tab-h) + 80px); right: 16px; width: 42px; height: 42px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--border); font-size: 20px; cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-  .map-center-btn.visible { display: flex; }
-
-  /* API KEY SETUP */
-  .setup-card { background: var(--card); border-radius: 16px; padding: 20px; margin: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  .setup-title { font-size: 17px; font-weight: 700; margin-bottom: 12px; }
-  .setup-steps { background: var(--bg); border-radius: 10px; padding: 14px; margin: 12px 0; }
-  .setup-step { font-size: 13px; padding: 5px 0; color: var(--text); border-bottom: 1px solid var(--border); }
-  .setup-step:last-child { border-bottom: none; }
-  .setup-step span { font-weight: 600; color: var(--primary); }
-  .key-input-row { display: flex; gap: 8px; }
-  .key-input-row input { flex: 1; }
-  .key-input-row button { padding: 10px 16px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-
-  /* HISTORY RECORD TYPE icons */
-  .type-visit::before { content: '🚗'; }
-  .type-call::before { content: '📞'; }
-  .type-preview::before { content: '🏠'; }
-  .type-contract::before { content: '📝'; }
-  .type-dm::before { content: '✉️'; }
-  .type-other::before { content: '💬'; }
-
-  /* EMPTY STATE */
+  .action-btn { padding: 9px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; }
+  .action-btn.danger { color: var(--danger); }
+  .hist-item { background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; gap: 8px; align-items: flex-start; }
+  .del-btn { background: none; border: none; color: var(--danger); font-size: 16px; cursor: pointer; padding: 2px 4px; }
+  .alert-item { background: var(--card); border-radius: 12px; padding: 13px; margin-bottom: 9px; border-left: 4px solid; cursor: pointer; }
+  .alert-over { border-color: var(--danger); } .alert-today { border-color: var(--warm); } .alert-soon { border-color: var(--primary); }
+  .alert-tag { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+  .alert-over .alert-tag { color: var(--danger); } .alert-today .alert-tag { color: var(--warm); } .alert-soon .alert-tag { color: var(--primary); }
   .empty { text-align: center; padding: 60px 20px; color: var(--text-sub); }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-text { font-size: 15px; }
-
-  /* VISIT COUNTER */
-  .visit-count { display: inline-block; background: var(--bg); border-radius: 8px; padding: 2px 8px; font-size: 12px; color: var(--text-sub); margin-left: 4px; }
-  .visit-over { background: #fee2e2; color: var(--danger); }
-
-  /* NEXT VISIT */
-  .next-visit { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
-  .next-visit.overdue { color: var(--danger); font-weight: 600; }
-  .next-visit.today { color: var(--warm); font-weight: 600; }
-  .next-visit.soon { color: var(--primary); font-weight: 600; }
+  .empty-icon { font-size: 44px; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; line-height: 1.7; }
+  .visit-badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--bg); color: var(--text-sub); margin-left: 4px; }
+  .visit-badge.over { background: #fee2e2; color: var(--danger); }
 </style>
 </head>
 <body>
-
-<!-- NAV -->
 <div class="nav">
   <span class="nav-title">🏢 営業CRM</span>
-  <button class="nav-btn" onclick="openAddCustomer()">＋ 顧客追加</button>
+  <button class="nav-btn" onclick="openAddCustomer('')">＋ 追加</button>
   <button class="nav-btn" onclick="openRecordHistory()">📝 記録</button>
 </div>
 
-<!-- MAP KEY BANNER -->
-<div class="map-key-banner" id="mapKeyBanner">
-  ⚠️ Google Maps APIキーが未設定です。マップページで設定してください。
-</div>
-
-<!-- PAGES -->
-<!-- MAP PAGE -->
-<div class="page active" id="page-map">
-  <div id="mapContainer" style="width:100%;height:100%;position:relative;">
-    <div class="map-loading" id="mapLoading">
-      <div style="font-size:48px;">🗺️</div>
-      <div>マップページ</div>
-      <div style="font-size:13px;">APIキーを設定すると本物の地図が表示されます</div>
-    </div>
-    <div id="map" style="display:none;"></div>
-    <!-- Setup Panel (shown when no API key) -->
-    <div id="mapSetup" style="overflow-y:auto;height:100%;background:var(--bg);">
+<div class="page" id="page-map">
+  <div id="mapWrapper">
+    <div id="mapSetupPanel">
       <div class="setup-card">
-        <div class="setup-title">🗺️ Google Maps設定</div>
-        <p style="font-size:14px;color:var(--text-sub);line-height:1.6;">APIキーを入力すると本物の地図が表示され、住所から自動でピンを立てられます。</p>
+        <div class="setup-title">🗺️ Google Maps APIキー設定</div>
+        <p style="font-size:13px;color:var(--text-sub);line-height:1.6;margin-bottom:6px;">APIキーを入力すると本物の地図が表示されます。</p>
         <div class="setup-steps">
-          <div class="setup-step"><span>①</span> <a href="https://console.cloud.google.com" target="_blank" style="color:var(--primary);">console.cloud.google.com</a> を開く</div>
-          <div class="setup-step"><span>②</span> 「アカウント設定を完了」をクリック</div>
-          <div class="setup-step"><span>③</span> Google Maps Platform → 「Maps JavaScript API」を有効化</div>
-          <div class="setup-step"><span>④</span> 「認証情報」→「APIキーを作成」</div>
-          <div class="setup-step"><span>⑤</span> 作成されたAPIキーをコピー</div>
-          <div class="setup-step"><span>⑥</span> 下のボックスに貼り付けて「保存」</div>
+          <div class="setup-step"><b>①</b> Google Cloud ConsoleでAPIキーを取得済み</div>
+          <div class="setup-step"><b>②</b> 下にAPIキーを貼り付けて「保存」をタップ</div>
         </div>
-        <div class="key-input-row">
-          <input type="text" id="apiKeyInput" placeholder="AIzaSy... (APIキーを貼り付け)" autocomplete="off">
+        <div class="key-row">
+          <input type="text" id="apiKeyInput" placeholder="AIzaSy... を貼り付け" autocomplete="off" spellcheck="false">
           <button onclick="saveApiKey()">保存</button>
         </div>
-        <p style="font-size:12px;color:var(--text-sub);margin-top:8px;">※ APIキーはこのデバイスにのみ保存されます（localStorage）</p>
+        <p style="font-size:11px;color:var(--text-sub);margin-top:8px;">※ キーはこのデバイスのみに保存されます</p>
       </div>
-      <div class="setup-card">
-        <div class="setup-title">📍 現在のピン（疑似表示）</div>
+      <div class="pin-list-card">
+        <div style="font-size:14px;font-weight:700;margin-bottom:10px;">📍 顧客の住所一覧</div>
         <div id="pseudoPinList"></div>
+      </div>
+    </div>
+    <div id="mapRealPanel">
+      <div id="mapEl"></div>
+      <div class="map-ctrl">
+        <button class="map-ctrl-btn map-ctrl-add" onclick="addPinAtCurrentLocation()">＋</button>
+        <button class="map-ctrl-btn map-ctrl-locate" onclick="centerToCurrentLocation()">📍</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- CUSTOMER PAGE -->
-<div class="page" id="page-customers">
+<div class="page active" id="page-customers">
   <div class="chips" id="filterChips">
-    <div class="chip active" onclick="filterCustomers('all', this)">すべて</div>
-    <div class="chip" onclick="filterCustomers('hot', this)">🔥 ホット</div>
-    <div class="chip" onclick="filterCustomers('warm', this)">♨ ウォーム</div>
-    <div class="chip" onclick="filterCustomers('cool', this)">💧 クール</div>
-    <div class="chip" onclick="filterCustomers('cold', this)">❄ コールド</div>
+    <div class="chip active" onclick="filterBy('all',this)">すべて</div>
+    <div class="chip" onclick="filterBy('hot',this)">🔥 ホット</div>
+    <div class="chip" onclick="filterBy('warm',this)">♨ ウォーム</div>
+    <div class="chip" onclick="filterBy('cool',this)">💧 クール</div>
+    <div class="chip" onclick="filterBy('cold',this)">❄ コールド</div>
   </div>
   <div id="customerList"></div>
 </div>
 
-<!-- HISTORY PAGE -->
 <div class="page" id="page-history">
   <div id="historyList"></div>
 </div>
 
-<!-- ALERT PAGE -->
 <div class="page" id="page-alerts">
   <div id="alertList"></div>
 </div>
 
-<!-- TABS -->
 <div class="tabs">
-  <div class="tab active" id="tab-map" onclick="switchTab('map')">
-    <span class="tab-icon">🗺️</span>マップ
-  </div>
-  <div class="tab" id="tab-customers" onclick="switchTab('customers')">
-    <span class="tab-icon">👥</span>顧客
-  </div>
-  <div class="tab" id="tab-history" onclick="switchTab('history')">
-    <span class="tab-icon">📋</span>履歴
-  </div>
-  <div class="tab" id="tab-alerts" onclick="switchTab('alerts')">
-    <span class="tab-icon">🔔</span>アラート
-  </div>
+  <div class="tab" id="tab-map" onclick="switchTab('map')"><span class="tab-icon">🗺️</span>マップ</div>
+  <div class="tab active" id="tab-customers" onclick="switchTab('customers')"><span class="tab-icon">👥</span>顧客</div>
+  <div class="tab" id="tab-history" onclick="switchTab('history')"><span class="tab-icon">📋</span>履歴</div>
+  <div class="tab" id="tab-alerts" onclick="switchTab('alerts')"><span class="tab-icon">🔔</span>アラート</div>
 </div>
 
-<!-- MAP FAB (shown on map tab when API key set) -->
-<button class="map-fab" id="mapFab" onclick="addPinAtCurrentLocation()">＋</button>
-<button class="map-center-btn" id="mapCenterBtn" onclick="centerToCurrentLocation()">📍</button>
-
-<!-- MODALS -->
-<!-- Add Customer Modal -->
-<div class="modal-overlay" id="modalAddCustomer">
+<!-- CUSTOMER MODAL -->
+<div class="modal-overlay" id="modalCustomer">
   <div class="modal">
-    <div class="modal-title" id="modalAddTitle">顧客を追加</div>
-    <div class="form-group">
-      <label>氏名 *</label>
-      <input type="text" id="f_name" placeholder="例：山田 太郎">
-    </div>
-    <div class="form-group">
-      <label>電話番号</label>
-      <input type="tel" id="f_phone" placeholder="090-0000-0000">
-    </div>
-    <div class="form-group">
-      <label>ステータス</label>
+    <div class="modal-title" id="modalCustomerTitle">顧客を追加</div>
+    <div class="form-group"><label>氏名 *</label><input type="text" id="f_name" placeholder="山田 太郎"></div>
+    <div class="form-group"><label>電話番号</label><input type="tel" id="f_phone" placeholder="090-0000-0000"></div>
+    <div class="form-group"><label>ステータス</label>
       <select id="f_status">
-        <option value="hot">🔥 ホット</option>
-        <option value="warm">♨ ウォーム</option>
-        <option value="cool">💧 クール</option>
-        <option value="cold">❄ コールド</option>
+        <option value="hot">🔥 ホット</option><option value="warm">♨ ウォーム</option>
+        <option value="cool">💧 クール</option><option value="cold">❄ コールド</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>住所</label>
-      <input type="text" id="f_address" placeholder="例：東京都渋谷区1-1-1">
-    </div>
-    <div class="form-group">
-      <label>物件ニーズ</label>
-      <input type="text" id="f_needs" placeholder="例：3LDK 予算5000万">
-    </div>
-    <div class="form-group">
-      <label>次回訪問予定</label>
-      <input type="date" id="f_nextVisit">
-    </div>
-    <div class="form-group">
-      <label>メモ</label>
-      <textarea id="f_memo" placeholder="自由入力"></textarea>
-    </div>
+    <div class="form-group"><label>住所</label><input type="text" id="f_address" placeholder="東京都渋谷区1-1-1"></div>
+    <div class="form-group"><label>物件ニーズ</label><input type="text" id="f_needs" placeholder="3LDK 予算5000万"></div>
+    <div class="form-group"><label>次回訪問予定</label><input type="date" id="f_nextVisit"></div>
+    <div class="form-group"><label>メモ</label><textarea id="f_memo"></textarea></div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('modalAddCustomer')">キャンセル</button>
+      <button class="btn btn-cancel" onclick="closeModal('modalCustomer')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveCustomer()">保存する</button>
     </div>
   </div>
 </div>
 
-<!-- Record History Modal -->
+<!-- HISTORY MODAL -->
 <div class="modal-overlay" id="modalHistory">
   <div class="modal">
     <div class="modal-title">営業履歴を記録</div>
-    <div class="form-group">
-      <label>顧客 *</label>
-      <select id="h_customer"></select>
-    </div>
-    <div class="form-group">
-      <label>タイプ</label>
+    <div class="form-group"><label>顧客 *</label><select id="h_customer"></select></div>
+    <div class="form-group"><label>タイプ</label>
       <select id="h_type">
-        <option value="visit">🚗 訪問</option>
-        <option value="call">📞 電話</option>
-        <option value="preview">🏠 内見</option>
-        <option value="contract">📝 契約</option>
-        <option value="dm">✉️ DM</option>
-        <option value="other">💬 その他</option>
+        <option value="visit">🚗 訪問</option><option value="call">📞 電話</option>
+        <option value="preview">🏠 内見</option><option value="contract">📝 契約</option>
+        <option value="dm">✉️ DM</option><option value="other">💬 その他</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>日付 *</label>
-      <input type="date" id="h_date">
-    </div>
-    <div class="form-group">
-      <label>時刻</label>
-      <input type="time" id="h_time">
-    </div>
-    <div class="form-group">
-      <label>営業メモ</label>
-      <textarea id="h_note" placeholder="商談内容など"></textarea>
-    </div>
-    <div class="form-group">
-      <label>ステータス更新</label>
+    <div class="form-group"><label>日付 *</label><input type="date" id="h_date"></div>
+    <div class="form-group"><label>時刻</label><input type="time" id="h_time"></div>
+    <div class="form-group"><label>営業メモ</label><textarea id="h_note" placeholder="商談内容など"></textarea></div>
+    <div class="form-group"><label>ステータス更新</label>
       <select id="h_status">
-        <option value="">変更なし</option>
-        <option value="hot">→ 🔥 ホット</option>
-        <option value="warm">→ ♨ ウォーム</option>
-        <option value="cool">→ 💧 クール</option>
+        <option value="">変更なし</option><option value="hot">→ 🔥 ホット</option>
+        <option value="warm">→ ♨ ウォーム</option><option value="cool">→ 💧 クール</option>
         <option value="cold">→ ❄ コールド</option>
       </select>
     </div>
-    <div class="form-group">
-      <label>次回訪問予定</label>
-      <input type="date" id="h_nextVisit">
-    </div>
+    <div class="form-group"><label>次回訪問予定</label><input type="date" id="h_nextVisit"></div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('modalHistory')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveHistory()">記録する</button>
@@ -348,10 +220,10 @@
   </div>
 </div>
 
-<!-- Customer Detail Panel -->
+<!-- DETAIL PANEL -->
 <div class="detail-panel" id="detailPanel">
   <div class="detail-header">
-    <button class="detail-back" onclick="closeDetail()">‹</button>
+    <button class="detail-back" onclick="closeDetail()">&#8249;</button>
     <span class="detail-name" id="detailName"></span>
     <span id="detailBadge"></span>
   </div>
@@ -359,268 +231,355 @@
     <div id="detailInfo"></div>
     <div class="action-btns">
       <button class="action-btn" onclick="editCurrentCustomer()">✏️ 編集</button>
-      <button class="action-btn" id="detailCalBtn">📅 カレンダー</button>
-      <button class="action-btn" id="detailMapBtn">📍 地図</button>
-      <button class="action-btn" onclick="deleteCurrentCustomer()" style="color:var(--danger);">🗑️ 削除</button>
+      <button class="action-btn" id="detailCalBtn" style="display:none">📅 カレンダー</button>
+      <button class="action-btn" id="detailMapBtn" style="display:none">📍 地図</button>
+      <button class="action-btn danger" onclick="deleteCurrentCustomer()">🗑️ 削除</button>
     </div>
-    <div class="section-title">営業履歴</div>
+    <div class="sec-title">営業履歴</div>
     <div id="detailHistoryList"></div>
   </div>
 </div>
 
 <script>
-// ===== DATA =====
-let customers = JSON.parse(localStorage.getItem('crm_customers') || '[]');
-let histories = JSON.parse(localStorage.getItem('crm_histories') || '[]');
-let currentFilter = 'all';
-let currentDetailId = null;
-let editingCustomerId = null;
-let googleMap = null;
-let mapMarkers = [];
-let mapInitialized = false;
+var customers = JSON.parse(localStorage.getItem('crm_customers') || '[]');
+var histories = JSON.parse(localStorage.getItem('crm_histories') || '[]');
+var currentFilter = 'all';
+var currentDetailId = null;
+var editingId = null;
+var pendingLatLng = null;
+var googleMap = null;
+var mapMarkers = [];
+var mapScriptLoaded = false;
+var currentTab = 'customers';
+
+var statusLabel = { hot:'🔥 ホット', warm:'♨ ウォーム', cool:'💧 クール', cold:'❄ コールド' };
+var typeLabel = { visit:'🚗 訪問', call:'📞 電話', preview:'🏠 内見', contract:'📝 契約', dm:'✉️ DM', other:'💬 その他' };
+var dotColor = { hot:'🔴', warm:'🟠', cool:'🔵', cold:'⚫' };
+var markerColor = { hot:'#ef4444', warm:'#f97316', cool:'#3b82f6', cold:'#6b7280' };
 
 function save() {
   localStorage.setItem('crm_customers', JSON.stringify(customers));
   localStorage.setItem('crm_histories', JSON.stringify(histories));
 }
+function getApiKey() { return localStorage.getItem('gmaps_api_key') || ''; }
+function getDayDiff(d) {
+  if (!d) return null;
+  var today = new Date(); today.setHours(0,0,0,0);
+  return Math.floor((new Date(d + 'T00:00:00') - today) / 86400000);
+}
 
-// ===== TAB SWITCH =====
+// TAB
 function switchTab(tab) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  currentTab = tab;
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById('page-' + tab).classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
-
-  if (tab === 'map') {
-    document.getElementById('mapFab').classList.toggle('visible', !!getApiKey());
-    document.getElementById('mapCenterBtn').classList.toggle('visible', !!getApiKey());
-    if (getApiKey() && !mapInitialized) initGoogleMap();
-    renderPseudoPins();
-  } else if (tab === 'customers') renderCustomers();
+  if (tab === 'map') renderMapTab();
+  else if (tab === 'customers') renderCustomers();
   else if (tab === 'history') renderHistories();
   else if (tab === 'alerts') renderAlerts();
 }
 
-// ===== CUSTOMER RENDER =====
-function statusLabel(s) {
-  return { hot: '🔥 ホット', warm: '♨ ウォーム', cool: '💧 クール', cold: '❄ コールド' }[s] || s;
-}
-function statusClass(s) { return 'badge-' + s; }
-
-function visitDayInfo(nextVisit) {
-  if (!nextVisit) return null;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const nv = new Date(nextVisit + 'T00:00:00');
-  const diff = Math.floor((nv - today) / 86400000);
-  return diff;
-}
-
-function renderCustomers() {
-  const list = document.getElementById('customerList');
-  let filtered = customers.filter(c => currentFilter === 'all' || c.status === currentFilter);
-  if (!filtered.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">顧客がいません<br>右上の「＋ 顧客追加」から追加</div></div>';
-    return;
-  }
-  list.innerHTML = filtered.map(c => {
-    const diff = visitDayInfo(c.nextVisit);
-    let visitHtml = '';
-    if (diff !== null) {
-      if (diff < 0) visitHtml = `<div class="next-visit overdue">⚠️ 訪問超過 (${Math.abs(diff)}日)</div>`;
-      else if (diff === 0) visitHtml = `<div class="next-visit today">🔔 今日が訪問日</div>`;
-      else if (diff <= 3) visitHtml = `<div class="next-visit soon">📅 ${diff}日後に訪問</div>`;
-      else visitHtml = `<div class="next-visit">📅 ${c.nextVisit}</div>`;
+// MAP
+function renderMapTab() {
+  renderPseudoPins();
+  var key = getApiKey();
+  if (key) {
+    document.getElementById('mapSetupPanel').style.display = 'none';
+    document.getElementById('mapRealPanel').style.display = 'block';
+    if (!mapScriptLoaded) {
+      loadMapScript(key);
+    } else if (googleMap) {
+      updateMapMarkers();
     }
-    const cHist = histories.filter(h => h.customerId === c.id);
-    const visits = cHist.filter(h => h.type === 'visit').length;
-    return `<div class="card" onclick="openDetail('${c.id}')">
-      <div class="card-header">
-        <span class="card-name">${c.name}</span>
-        <span class="badge ${statusClass(c.status)}">${statusLabel(c.status)}</span>
-        ${visits > 0 ? `<span class="visit-count ${visits >= 5 ? 'visit-over' : ''}">訪${visits}</span>` : ''}
-      </div>
-      ${c.phone ? `<div style="font-size:13px;color:var(--text-sub);">📞 ${c.phone}</div>` : ''}
-      ${c.address ? `<div style="font-size:13px;color:var(--text-sub);">📍 ${c.address}</div>` : ''}
-      ${visitHtml}
-    </div>`;
+  } else {
+    document.getElementById('mapSetupPanel').style.display = 'block';
+    document.getElementById('mapRealPanel').style.display = 'none';
+  }
+}
+
+function saveApiKey() {
+  var key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) { alert('APIキーを入力してください'); return; }
+  if (!key.startsWith('AIza')) { alert('APIキーが正しくないようです。\nAIzaSy... で始まるキーを入力してください。'); return; }
+  localStorage.setItem('gmaps_api_key', key);
+  renderMapTab();
+}
+
+function loadMapScript(key) {
+  mapScriptLoaded = true;
+  var el = document.getElementById('mapEl');
+  el.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e8eaf0;flex-direction:column;gap:12px;color:#64748b;font-size:15px;';
+  el.innerHTML = '<div style="font-size:40px;">🗺️</div><div>地図を読み込み中...</div>';
+  window._initGoogleMap = function() {
+    var el2 = document.getElementById('mapEl');
+    el2.style.cssText = 'width:100%;height:100%;';
+    el2.innerHTML = '';
+    googleMap = new google.maps.Map(el2, {
+      center: {lat: 35.6812, lng: 139.7671},
+      zoom: 13,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      gestureHandling: 'greedy'
+    });
+    var pressTimer;
+    googleMap.addListener('mousedown', function(e) {
+      pressTimer = setTimeout(function(){ addCustomerAtLatLng(e.latLng.lat(), e.latLng.lng()); }, 700);
+    });
+    googleMap.addListener('mouseup', function(){ clearTimeout(pressTimer); });
+    googleMap.addListener('dragstart', function(){ clearTimeout(pressTimer); });
+    updateMapMarkers();
+    centerToCurrentLocation();
+  };
+  var s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=' + key + '&language=ja&region=JP&callback=_initGoogleMap';
+  s.async = true;
+  s.onerror = function() {
+    document.getElementById('mapEl').innerHTML = '<div style="padding:20px;text-align:center;"><div style="font-size:32px;margin-bottom:10px;">❌</div><div style="color:#ef4444;font-weight:600;">APIキーエラー</div><div style="font-size:13px;color:#64748b;margin:8px 0;">正しいAPIキーか確認してください</div><button onclick="localStorage.removeItem(\'gmaps_api_key\');mapScriptLoaded=false;googleMap=null;renderMapTab();" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;">再設定する</button></div>';
+  };
+  document.head.appendChild(s);
+}
+
+function updateMapMarkers() {
+  if (!googleMap) return;
+  mapMarkers.forEach(function(m){ m.setMap(null); });
+  mapMarkers = [];
+  customers.forEach(function(c) {
+    if (c.lat != null && c.lng != null) {
+      addMarker(c);
+    } else if (c.address) {
+      new google.maps.Geocoder().geocode({address: c.address, region:'JP'}, function(res, status) {
+        if (status === 'OK') {
+          c.lat = res[0].geometry.location.lat();
+          c.lng = res[0].geometry.location.lng();
+          save();
+          addMarker(c);
+        }
+      });
+    }
+  });
+}
+
+function addMarker(c) {
+  var marker = new google.maps.Marker({
+    position: {lat: c.lat, lng: c.lng},
+    map: googleMap,
+    title: c.name,
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 9,
+      fillColor: markerColor[c.status] || '#2563eb',
+      fillOpacity: 1,
+      strokeColor: '#fff',
+      strokeWeight: 2
+    }
+  });
+  var info = new google.maps.InfoWindow({content: '<b>' + c.name + '</b><br><small>' + (c.address||'') + '</small>'});
+  marker.addListener('click', function(){ info.open(googleMap, marker); openDetail(c.id); });
+  mapMarkers.push(marker);
+}
+
+function centerToCurrentLocation() {
+  if (!navigator.geolocation || !googleMap) return;
+  navigator.geolocation.getCurrentPosition(function(p){ googleMap.panTo({lat:p.coords.latitude, lng:p.coords.longitude}); });
+}
+
+function addPinAtCurrentLocation() {
+  if (!navigator.geolocation) { alert('位置情報が使えません'); return; }
+  navigator.geolocation.getCurrentPosition(function(p){ addCustomerAtLatLng(p.coords.latitude, p.coords.longitude); }, function(){ alert('位置情報の取得に失敗しました'); });
+}
+
+function addCustomerAtLatLng(lat, lng) {
+  pendingLatLng = {lat:lat, lng:lng};
+  if (window.google) {
+    new google.maps.Geocoder().geocode({location:{lat:lat,lng:lng}}, function(res, status){
+      var addr = (status==='OK'&&res[0]) ? res[0].formatted_address : '';
+      openAddCustomer(addr);
+    });
+  } else { openAddCustomer(''); }
+}
+
+function renderPseudoPins() {
+  var list = document.getElementById('pseudoPinList');
+  if (!list) return;
+  var arr = customers.filter(function(c){ return c.address; });
+  if (!arr.length) { list.innerHTML = '<div style="color:var(--text-sub);font-size:13px;">住所のある顧客がいません</div>'; return; }
+  list.innerHTML = arr.map(function(c){
+    return '<div class="pin-item" onclick="window.open(\'https://www.google.com/maps/search/'+encodeURIComponent(c.address)+'\',\'_blank\')">'
+      + '<span style="font-size:18px;">' + (dotColor[c.status]||'📍') + '</span>'
+      + '<div style="flex:1;"><div style="font-size:14px;font-weight:600;">' + c.name + '</div>'
+      + '<div style="font-size:12px;color:var(--text-sub);">' + c.address + '</div></div>'
+      + '<span style="font-size:12px;color:var(--text-sub);">›</span></div>';
   }).join('');
 }
 
-function filterCustomers(filter, el) {
-  currentFilter = filter;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+// CUSTOMERS
+function renderCustomers() {
+  var list = document.getElementById('customerList');
+  var arr = customers.filter(function(c){ return currentFilter==='all'||c.status===currentFilter; });
+  if (!arr.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">顧客がいません<br>右上の「＋ 追加」から追加してください</div></div>'; return; }
+  list.innerHTML = arr.map(function(c){
+    var diff = getDayDiff(c.nextVisit);
+    var alertHtml = '';
+    if (diff !== null) {
+      if (diff < 0) alertHtml = '<div class="card-alert over">⚠️ 訪問超過 ' + Math.abs(diff) + '日</div>';
+      else if (diff === 0) alertHtml = '<div class="card-alert today">🔔 今日が訪問日</div>';
+      else if (diff <= 3) alertHtml = '<div class="card-alert soon">📅 ' + diff + '日後に訪問</div>';
+    }
+    var visits = histories.filter(function(h){ return h.customerId===c.id&&h.type==='visit'; }).length;
+    return '<div class="card" onclick="openDetail(\'' + c.id + '\')">'
+      + '<div class="card-row"><span class="card-name">' + c.name + '</span>'
+      + '<span class="badge badge-' + c.status + '">' + statusLabel[c.status] + '</span>'
+      + (visits>0 ? '<span class="visit-badge' + (visits>=5?' over':'') + '">訪' + visits + '</span>' : '') + '</div>'
+      + (c.phone ? '<div class="card-sub">📞 ' + c.phone + '</div>' : '')
+      + (c.address ? '<div class="card-sub">📍 ' + c.address + '</div>' : '')
+      + alertHtml + '</div>';
+  }).join('');
+}
+
+function filterBy(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
   el.classList.add('active');
   renderCustomers();
 }
 
-// ===== HISTORY RENDER =====
-const typeLabel = { visit:'🚗 訪問', call:'📞 電話', preview:'🏠 内見', contract:'📝 契約', dm:'✉️ DM', other:'💬 その他' };
-
+// HISTORY
 function renderHistories() {
-  const list = document.getElementById('historyList');
-  if (!histories.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">履歴がありません</div></div>';
-    return;
-  }
-  const sorted = [...histories].sort((a,b) => b.timestamp - a.timestamp);
-  list.innerHTML = sorted.map(h => {
-    const c = customers.find(x => x.id === h.customerId);
-    return `<div class="card">
-      <div class="history-item" style="padding:0;">
-        <span class="history-type">${typeLabel[h.type] || '💬'}</span>
-        <div class="history-body">
-          <div style="font-weight:600;font-size:14px;">${c ? c.name : '不明'}</div>
-          <div class="history-meta">${h.date}${h.time ? ' ' + h.time : ''}</div>
-          ${h.note ? `<div class="history-note">${h.note}</div>` : ''}
-        </div>
-        <button class="del-btn" onclick="deleteHistory('${h.id}')">🗑</button>
-      </div>
-    </div>`;
+  var list = document.getElementById('historyList');
+  if (!histories.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">履歴がありません</div></div>'; return; }
+  var sorted = histories.slice().sort(function(a,b){ return b.timestamp - a.timestamp; });
+  list.innerHTML = sorted.map(function(h){
+    var c = customers.find(function(x){ return x.id===h.customerId; });
+    return '<div class="card" style="cursor:default;">'
+      + '<div style="display:flex;gap:8px;align-items:flex-start;">'
+      + '<span style="font-size:18px;">' + (typeLabel[h.type]||'💬').split(' ')[0] + '</span>'
+      + '<div style="flex:1;"><div style="font-weight:600;font-size:14px;">' + (c?c.name:'不明') + '</div>'
+      + '<div style="font-size:12px;color:var(--text-sub);">' + h.date + (h.time?' '+h.time:'') + '</div>'
+      + (h.note ? '<div style="font-size:13px;margin-top:3px;">' + h.note + '</div>' : '') + '</div>'
+      + '<button class="del-btn" onclick="deleteHistory(\'' + h.id + '\')">🗑</button>'
+      + '</div></div>';
   }).join('');
 }
 
-// ===== ALERTS =====
+// ALERTS
 function renderAlerts() {
-  const list = document.getElementById('alertList');
-  const today = new Date(); today.setHours(0,0,0,0);
-  let items = [];
-  customers.forEach(c => {
+  var list = document.getElementById('alertList');
+  var over=[], td=[], soon=[];
+  customers.forEach(function(c){
     if (!c.nextVisit) return;
-    const nv = new Date(c.nextVisit + 'T00:00:00');
-    const diff = Math.floor((nv - today) / 86400000);
-    items.push({ c, diff });
+    var diff = getDayDiff(c.nextVisit);
+    if (diff < 0) over.push({c:c,diff:diff});
+    else if (diff===0) td.push({c:c,diff:diff});
+    else if (diff<=7) soon.push({c:c,diff:diff});
   });
-  const over = items.filter(x => x.diff < 0).sort((a,b) => a.diff - b.diff);
-  const td = items.filter(x => x.diff === 0);
-  const soon = items.filter(x => x.diff > 0 && x.diff <= 7).sort((a,b) => a.diff - b.diff);
-
-  if (!over.length && !td.length && !soon.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">アラートはありません</div></div>';
-    return;
+  over.sort(function(a,b){return a.diff-b.diff;});
+  soon.sort(function(a,b){return a.diff-b.diff;});
+  if (!over.length&&!td.length&&!soon.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">アラートはありません</div></div>'; return; }
+  function makeItem(cls,tag,c,diff) {
+    return '<div class="alert-item ' + cls + '" onclick="openDetail(\'' + c.id + '\')">'
+      + '<div class="alert-tag">' + tag + '</div>'
+      + '<div style="font-weight:600;font-size:15px;">' + c.name + '</div>'
+      + '<div style="font-size:12px;color:var(--text-sub);">' + c.nextVisit + '</div></div>';
   }
-  let html = '';
-  over.forEach(({ c, diff }) => {
-    html += `<div class="alert-item alert-over" onclick="openDetail('${c.id}')">
-      <div class="alert-label">⚠️ 訪問超過 (${Math.abs(diff)}日)</div>
-      <div style="font-weight:600;">${c.name}</div>
-      <div style="font-size:13px;color:var(--text-sub);">${c.nextVisit}</div>
-    </div>`;
-  });
-  td.forEach(({ c }) => {
-    html += `<div class="alert-item alert-today" onclick="openDetail('${c.id}')">
-      <div class="alert-label">🔔 今日が訪問日</div>
-      <div style="font-weight:600;">${c.name}</div>
-    </div>`;
-  });
-  soon.forEach(({ c, diff }) => {
-    html += `<div class="alert-item alert-soon" onclick="openDetail('${c.id}')">
-      <div class="alert-label">📅 ${diff}日後に訪問</div>
-      <div style="font-weight:600;">${c.name}</div>
-      <div style="font-size:13px;color:var(--text-sub);">${c.nextVisit}</div>
-    </div>`;
-  });
-  list.innerHTML = html;
+  list.innerHTML =
+    over.map(function(x){ return makeItem('alert-over','⚠️ 訪問超過 '+Math.abs(x.diff)+'日',x.c,x.diff); }).join('') +
+    td.map(function(x){ return makeItem('alert-today','🔔 今日が訪問日',x.c,x.diff); }).join('') +
+    soon.map(function(x){ return makeItem('alert-soon','📅 '+x.diff+'日後に訪問',x.c,x.diff); }).join('');
 }
 
-// ===== DETAIL PANEL =====
+// DETAIL
 function openDetail(id) {
-  const c = customers.find(x => x.id === id);
+  var c = customers.find(function(x){ return x.id===id; });
   if (!c) return;
   currentDetailId = id;
   document.getElementById('detailName').textContent = c.name;
-  document.getElementById('detailBadge').innerHTML = `<span class="badge ${statusClass(c.status)}">${statusLabel(c.status)}</span>`;
-
-  let info = '';
-  if (c.phone) info += `<div class="info-row"><span class="info-label">電話</span><span class="info-value"><a href="tel:${c.phone}" style="color:var(--primary);">${c.phone}</a></span></div>`;
-  if (c.address) info += `<div class="info-row"><span class="info-label">住所</span><span class="info-value">${c.address}</span></div>`;
-  if (c.needs) info += `<div class="info-row"><span class="info-label">ニーズ</span><span class="info-value">${c.needs}</span></div>`;
-  if (c.nextVisit) info += `<div class="info-row"><span class="info-label">次回訪問</span><span class="info-value">${c.nextVisit}</span></div>`;
-  if (c.memo) info += `<div class="info-row"><span class="info-label">メモ</span><span class="info-value">${c.memo}</span></div>`;
+  document.getElementById('detailBadge').innerHTML = '<span class="badge badge-'+c.status+'">'+statusLabel[c.status]+'</span>';
+  var info = '';
+  if (c.phone) info += '<div class="info-row"><span class="info-label">電話</span><span class="info-value"><a href="tel:'+c.phone+'" style="color:var(--primary);">'+c.phone+'</a></span></div>';
+  if (c.address) info += '<div class="info-row"><span class="info-label">住所</span><span class="info-value">'+c.address+'</span></div>';
+  if (c.needs) info += '<div class="info-row"><span class="info-label">ニーズ</span><span class="info-value">'+c.needs+'</span></div>';
+  if (c.nextVisit) info += '<div class="info-row"><span class="info-label">次回訪問</span><span class="info-value">'+c.nextVisit+'</span></div>';
+  if (c.memo) info += '<div class="info-row"><span class="info-label">メモ</span><span class="info-value">'+c.memo+'</span></div>';
   document.getElementById('detailInfo').innerHTML = info;
-
-  // Calendar button
-  const calBtn = document.getElementById('detailCalBtn');
+  var calBtn = document.getElementById('detailCalBtn');
   if (c.nextVisit) {
-    const dt = c.nextVisit.replace(/-/g,'');
-    const title = encodeURIComponent(c.name + ' 訪問');
-    calBtn.onclick = () => window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dt}/${dt}`, '_blank');
+    var dt = c.nextVisit.replace(/-/g,'');
+    calBtn.onclick = function(){ window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(c.name+' 訪問')+'&dates='+dt+'/'+dt,'_blank'); };
     calBtn.style.display = '';
-  } else {
-    calBtn.style.display = 'none';
-  }
-
-  // Map button
-  const mapBtn = document.getElementById('detailMapBtn');
+  } else { calBtn.style.display = 'none'; }
+  var mapBtn = document.getElementById('detailMapBtn');
   if (c.address) {
-    mapBtn.onclick = () => window.open(`https://www.google.com/maps/search/${encodeURIComponent(c.address)}`, '_blank');
+    mapBtn.onclick = function(){ window.open('https://www.google.com/maps/search/'+encodeURIComponent(c.address),'_blank'); };
     mapBtn.style.display = '';
-  } else {
-    mapBtn.style.display = 'none';
-  }
-
-  // History
-  const cHist = histories.filter(h => h.customerId === id).sort((a,b) => b.timestamp - a.timestamp);
+  } else { mapBtn.style.display = 'none'; }
+  var cHist = histories.filter(function(h){ return h.customerId===id; }).sort(function(a,b){ return b.timestamp-a.timestamp; });
   document.getElementById('detailHistoryList').innerHTML = cHist.length
-    ? cHist.map(h => `<div class="history-item">
-        <span class="history-type">${typeLabel[h.type] || '💬'}</span>
-        <div class="history-body">
-          <div class="history-meta">${h.date}${h.time ? ' ' + h.time : ''}</div>
-          ${h.note ? `<div class="history-note">${h.note}</div>` : ''}
-        </div>
-        <button class="del-btn" onclick="deleteHistory('${h.id}');openDetail('${id}')">🗑</button>
-      </div>`).join('')
-    : '<div style="color:var(--text-sub);font-size:14px;padding:10px 0;">履歴なし</div>';
-
+    ? cHist.map(function(h){
+        return '<div class="hist-item">'
+          + '<span style="font-size:18px;">' + (typeLabel[h.type]||'💬').split(' ')[0] + '</span>'
+          + '<div style="flex:1;"><div style="font-size:12px;color:var(--text-sub);">' + h.date + (h.time?' '+h.time:'') + '</div>'
+          + (h.note?'<div style="font-size:13px;margin-top:2px;">'+h.note+'</div>':'') + '</div>'
+          + '<button class="del-btn" onclick="deleteHistory(\''+h.id+'\');openDetail(\''+id+'\')">🗑</button></div>';
+      }).join('')
+    : '<div style="color:var(--text-sub);font-size:13px;padding:8px 0;">履歴なし</div>';
   document.getElementById('detailPanel').classList.add('open');
 }
+
 function closeDetail() {
   document.getElementById('detailPanel').classList.remove('open');
   currentDetailId = null;
 }
+
 function editCurrentCustomer() {
   if (!currentDetailId) return;
-  const c = customers.find(x => x.id === currentDetailId);
-  editingCustomerId = currentDetailId;
+  var c = customers.find(function(x){ return x.id===currentDetailId; });
+  editingId = currentDetailId;
   document.getElementById('f_name').value = c.name;
-  document.getElementById('f_phone').value = c.phone || '';
+  document.getElementById('f_phone').value = c.phone||'';
   document.getElementById('f_status').value = c.status;
-  document.getElementById('f_address').value = c.address || '';
-  document.getElementById('f_needs').value = c.needs || '';
-  document.getElementById('f_nextVisit').value = c.nextVisit || '';
-  document.getElementById('f_memo').value = c.memo || '';
-  document.getElementById('modalAddTitle').textContent = '顧客を編集';
+  document.getElementById('f_address').value = c.address||'';
+  document.getElementById('f_needs').value = c.needs||'';
+  document.getElementById('f_nextVisit').value = c.nextVisit||'';
+  document.getElementById('f_memo').value = c.memo||'';
+  document.getElementById('modalCustomerTitle').textContent = '顧客を編集';
   closeDetail();
-  document.getElementById('modalAddCustomer').classList.add('open');
+  document.getElementById('modalCustomer').classList.add('open');
 }
+
 function deleteCurrentCustomer() {
-  if (!currentDetailId) return;
   if (!confirm('この顧客を削除しますか？')) return;
-  customers = customers.filter(c => c.id !== currentDetailId);
-  histories = histories.filter(h => h.customerId !== currentDetailId);
+  customers = customers.filter(function(c){ return c.id!==currentDetailId; });
+  histories = histories.filter(function(h){ return h.customerId!==currentDetailId; });
   save();
   closeDetail();
   renderCustomers();
-  updateMapMarkers();
+  if (googleMap) updateMapMarkers();
+  renderPseudoPins();
 }
 
-// ===== ADD/EDIT CUSTOMER =====
-function openAddCustomer() {
-  editingCustomerId = null;
+// ADD CUSTOMER
+function openAddCustomer(prefillAddr) {
+  editingId = null;
   document.getElementById('f_name').value = '';
   document.getElementById('f_phone').value = '';
   document.getElementById('f_status').value = 'hot';
-  document.getElementById('f_address').value = '';
+  document.getElementById('f_address').value = prefillAddr || '';
   document.getElementById('f_needs').value = '';
   document.getElementById('f_nextVisit').value = '';
   document.getElementById('f_memo').value = '';
-  document.getElementById('modalAddTitle').textContent = '顧客を追加';
-  document.getElementById('modalAddCustomer').classList.add('open');
+  document.getElementById('modalCustomerTitle').textContent = prefillAddr ? '📍 この場所に顧客追加' : '顧客を追加';
+  document.getElementById('modalCustomer').classList.add('open');
 }
+
 function saveCustomer() {
-  const name = document.getElementById('f_name').value.trim();
+  var name = document.getElementById('f_name').value.trim();
   if (!name) { alert('氏名を入力してください'); return; }
-  if (editingCustomerId) {
-    const c = customers.find(x => x.id === editingCustomerId);
+  if (editingId) {
+    var c = customers.find(function(x){ return x.id===editingId; });
+    var addrChanged = c.address !== document.getElementById('f_address').value.trim();
     c.name = name;
     c.phone = document.getElementById('f_phone').value.trim();
     c.status = document.getElementById('f_status').value;
@@ -628,301 +587,83 @@ function saveCustomer() {
     c.needs = document.getElementById('f_needs').value.trim();
     c.nextVisit = document.getElementById('f_nextVisit').value;
     c.memo = document.getElementById('f_memo').value.trim();
+    if (addrChanged) { c.lat = null; c.lng = null; }
   } else {
     customers.push({
       id: Date.now().toString(),
-      name,
+      name: name,
       phone: document.getElementById('f_phone').value.trim(),
       status: document.getElementById('f_status').value,
       address: document.getElementById('f_address').value.trim(),
       needs: document.getElementById('f_needs').value.trim(),
       nextVisit: document.getElementById('f_nextVisit').value,
       memo: document.getElementById('f_memo').value.trim(),
-      lat: null, lng: null
+      lat: pendingLatLng ? pendingLatLng.lat : null,
+      lng: pendingLatLng ? pendingLatLng.lng : null
     });
+    pendingLatLng = null;
   }
   save();
-  closeModal('modalAddCustomer');
+  closeModal('modalCustomer');
   renderCustomers();
   renderPseudoPins();
-  updateMapMarkers();
+  if (googleMap) updateMapMarkers();
 }
 
-// ===== HISTORY =====
+// HISTORY
 function openRecordHistory() {
   if (!customers.length) { alert('先に顧客を追加してください'); return; }
-  const sel = document.getElementById('h_customer');
-  sel.innerHTML = customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  const today = new Date();
-  document.getElementById('h_date').value = today.toISOString().split('T')[0];
-  document.getElementById('h_time').value = today.toTimeString().slice(0,5);
+  document.getElementById('h_customer').innerHTML = customers.map(function(c){ return '<option value="'+c.id+'">'+c.name+'</option>'; }).join('');
+  var now = new Date();
+  document.getElementById('h_date').value = now.toISOString().split('T')[0];
+  document.getElementById('h_time').value = now.toTimeString().slice(0,5);
   document.getElementById('h_note').value = '';
   document.getElementById('h_status').value = '';
   document.getElementById('h_nextVisit').value = '';
   document.getElementById('modalHistory').classList.add('open');
 }
+
 function saveHistory() {
-  const customerId = document.getElementById('h_customer').value;
-  const date = document.getElementById('h_date').value;
+  var date = document.getElementById('h_date').value;
   if (!date) { alert('日付を入力してください'); return; }
-  const newH = {
+  var customerId = document.getElementById('h_customer').value;
+  histories.push({
     id: Date.now().toString(),
-    customerId,
+    customerId: customerId,
     type: document.getElementById('h_type').value,
-    date,
+    date: date,
     time: document.getElementById('h_time').value,
     note: document.getElementById('h_note').value.trim(),
     timestamp: Date.now()
-  };
-  histories.push(newH);
-  const statusChange = document.getElementById('h_status').value;
-  const nextVisit = document.getElementById('h_nextVisit').value;
-  const c = customers.find(x => x.id === customerId);
-  if (c) {
-    if (statusChange) c.status = statusChange;
-    if (nextVisit) c.nextVisit = nextVisit;
-  }
+  });
+  var sc = document.getElementById('h_status').value;
+  var nv = document.getElementById('h_nextVisit').value;
+  var c = customers.find(function(x){ return x.id===customerId; });
+  if (c) { if (sc) c.status=sc; if (nv) c.nextVisit=nv; }
   save();
   closeModal('modalHistory');
   renderHistories();
   renderCustomers();
 }
+
 function deleteHistory(id) {
-  histories = histories.filter(h => h.id !== id);
+  histories = histories.filter(function(h){ return h.id!==id; });
   save();
   renderHistories();
 }
 
-// ===== MODAL HELPERS =====
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){
+  o.addEventListener('click', function(e){ if (e.target===o) o.classList.remove('open'); });
 });
 
-// ===== PSEUDO PINS =====
-function renderPseudoPins() {
-  const list = document.getElementById('pseudoPinList');
-  if (!list) return;
-  const withAddr = customers.filter(c => c.address);
-  if (!withAddr.length) {
-    list.innerHTML = '<div style="color:var(--text-sub);font-size:14px;">住所のある顧客がいません</div>';
-    return;
-  }
-  list.innerHTML = withAddr.map(c => `<div class="card" style="margin-bottom:8px;cursor:pointer;" onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(c.address)}','_blank')">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:20px;">${{hot:'🔴',warm:'🟠',cool:'🔵',cold:'⚫'}[c.status]||'📍'}</span>
-      <div><div style="font-weight:600;font-size:14px;">${c.name}</div><div style="font-size:12px;color:var(--text-sub);">${c.address}</div></div>
-    </div>
-  </div>`).join('');
-}
-
-// ===== GOOGLE MAPS API KEY =====
-function getApiKey() { return localStorage.getItem('gmaps_api_key') || ''; }
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) { alert('APIキーを入力してください'); return; }
-  localStorage.setItem('gmaps_api_key', key);
-  alert('APIキーを保存しました！マップを読み込みます...');
-  initGoogleMap();
-}
-
-// ===== GOOGLE MAPS INIT =====
-function initGoogleMap() {
-  const key = getApiKey();
-  if (!key) return;
-  document.getElementById('mapSetup').style.display = 'none';
-  document.getElementById('mapLoading').style.display = 'flex';
-  document.getElementById('map').style.display = 'none';
-
-  if (window.google && window.google.maps) {
-    createMap();
-    return;
-  }
-
-  const script = document.createElement('script');
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&language=ja&region=JP&callback=onGoogleMapsLoaded`;
-  script.async = true;
-  script.onerror = () => {
-    document.getElementById('mapLoading').innerHTML = '<div style="font-size:32px;">❌</div><div>地図の読み込みに失敗しました</div><div style="font-size:13px;">APIキーを確認してください</div><button onclick="resetApiKey()" style="margin-top:12px;padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;cursor:pointer;">APIキーを再設定</button>';
-    document.getElementById('mapLoading').style.display = 'flex';
-  };
-  document.head.appendChild(script);
-}
-
-window.onGoogleMapsLoaded = function() {
-  createMap();
-};
-
-function createMap() {
-  mapInitialized = true;
-  document.getElementById('mapLoading').style.display = 'none';
-  const mapEl = document.getElementById('map');
-  mapEl.style.display = 'block';
-
-  const defaultCenter = { lat: 35.6812, lng: 139.7671 }; // Tokyo
-  googleMap = new google.maps.Map(mapEl, {
-    center: defaultCenter,
-    zoom: 12,
-    mapTypeControl: false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    zoomControl: true,
-    gestureHandling: 'greedy'
-  });
-
-  // Long press to add customer
-  let pressTimer;
-  let pressLatLng;
-  googleMap.addListener('mousedown', (e) => {
-    pressLatLng = e.latLng;
-    pressTimer = setTimeout(() => addCustomerAtLatLng(e.latLng), 800);
-  });
-  googleMap.addListener('mouseup', () => clearTimeout(pressTimer));
-  googleMap.addListener('dragstart', () => clearTimeout(pressTimer));
-
-  updateMapMarkers();
-  centerToCurrentLocation();
-}
-
-function updateMapMarkers() {
-  if (!googleMap || !window.google) return;
-  mapMarkers.forEach(m => m.setMap(null));
-  mapMarkers = [];
-
-  customers.forEach(c => {
-    if (c.lat && c.lng) {
-      addMarker(c, { lat: c.lat, lng: c.lng });
-    } else if (c.address) {
-      geocodeAndAddMarker(c);
-    }
-  });
-}
-
-function geocodeAndAddMarker(c) {
-  const geocoder = new google.maps.Geocoder();
-  geocoder.geocode({ address: c.address, region: 'JP' }, (results, status) => {
-    if (status === 'OK') {
-      const pos = results[0].geometry.location;
-      c.lat = pos.lat();
-      c.lng = pos.lng();
-      save();
-      addMarker(c, pos);
-    }
-  });
-}
-
-function addMarker(c, pos) {
-  const colors = { hot: '#ef4444', warm: '#f97316', cool: '#3b82f6', cold: '#6b7280' };
-  const marker = new google.maps.Marker({
-    position: pos,
-    map: googleMap,
-    title: c.name,
-    icon: {
-      path: google.maps.SymbolPath.CIRCLE,
-      scale: 10,
-      fillColor: colors[c.status] || '#2563eb',
-      fillOpacity: 1,
-      strokeColor: '#fff',
-      strokeWeight: 2
-    }
-  });
-  const infoWindow = new google.maps.InfoWindow({
-    content: `<div style="font-family:sans-serif;padding:4px 2px;"><strong>${c.name}</strong><br><span style="font-size:12px;">${c.address || ''}</span></div>`
-  });
-  marker.addListener('click', () => {
-    infoWindow.open(googleMap, marker);
-    openDetail(c.id);
-  });
-  mapMarkers.push(marker);
-}
-
-function centerToCurrentLocation() {
-  if (!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(pos => {
-    const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    if (googleMap) googleMap.panTo(latlng);
-  });
-}
-
-function addPinAtCurrentLocation() {
-  if (!navigator.geolocation) { alert('位置情報が使えません'); return; }
-  navigator.geolocation.getCurrentPosition(pos => {
-    const latlng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    addCustomerAtLatLng(latlng);
-  }, () => alert('位置情報の取得に失敗しました'));
-}
-
-function addCustomerAtLatLng(latlng) {
-  // Reverse geocode then open add form with address pre-filled
-  if (window.google) {
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: latlng }, (results, status) => {
-      const addr = status === 'OK' && results[0] ? results[0].formatted_address : '';
-      openAddCustomerWithAddress(addr, latlng.lat, latlng.lng);
-    });
-  } else {
-    openAddCustomerWithAddress('', latlng.lat, latlng.lng);
-  }
-}
-
-function openAddCustomerWithAddress(addr, lat, lng) {
-  editingCustomerId = null;
-  document.getElementById('f_name').value = '';
-  document.getElementById('f_phone').value = '';
-  document.getElementById('f_status').value = 'hot';
-  document.getElementById('f_address').value = addr;
-  document.getElementById('f_needs').value = '';
-  document.getElementById('f_nextVisit').value = '';
-  document.getElementById('f_memo').value = '';
-  document.getElementById('modalAddTitle').textContent = '📍 この場所に顧客追加';
-
-  // Store pending lat/lng for after save
-  window._pendingLat = lat;
-  window._pendingLng = lng;
-  document.getElementById('modalAddCustomer').classList.add('open');
-}
-
-// Override saveCustomer to include lat/lng if pending
-const _origSaveCustomer = saveCustomer;
-saveCustomer = function() {
-  _origSaveCustomer();
-  if (window._pendingLat && customers.length) {
-    const last = customers[customers.length - 1];
-    if (!editingCustomerId) {
-      last.lat = window._pendingLat;
-      last.lng = window._pendingLng;
-      save();
-    }
-    window._pendingLat = null;
-    window._pendingLng = null;
-  }
-};
-
-function resetApiKey() {
-  localStorage.removeItem('gmaps_api_key');
-  mapInitialized = false;
-  document.getElementById('mapSetup').style.display = 'block';
-  document.getElementById('mapLoading').style.display = 'none';
-  document.getElementById('map').style.display = 'none';
-}
-
-// ===== INIT =====
-(function() {
-  const today = new Date();
-  document.getElementById('h_date').value = today.toISOString().split('T')[0];
-
-  // Check alert count for tab badge
-  const key = getApiKey();
-  if (key) {
-    document.getElementById('mapFab').classList.add('visible');
-    document.getElementById('mapCenterBtn').classList.add('visible');
-  }
+// INIT
+(function(){
+  renderCustomers();
+  var key = getApiKey();
+  if (key) document.getElementById('apiKeyInput').value = key;
   renderPseudoPins();
-
-  // If API key exists, auto-load map when map tab is current
-  if (key && document.getElementById('page-map').classList.contains('active')) {
-    setTimeout(initGoogleMap, 300);
-  }
 })();
 </script>
 </body>
