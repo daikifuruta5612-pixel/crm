@@ -4,8 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>営業CRM</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPgogIDxwYXRoIGQ9Ik0xNiA1QzExLjYgNSA4IDguNiA4IDEzYzAgNiA4IDE0IDggMTRzOC04IDgtMTRjMC00LjQtMy42LTgtOC04eiIgZmlsbD0id2hpdGUiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjEzIiByPSIzLjUiIGZpbGw9IiMyNTYzZWIiLz4KPC9zdmc+">
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPgogIDxwYXRoIGQ9Ik0xNiA1QzExLjYgNSA4IDguNiA4IDEzYzAgNiA4IDE0IDggMTRzOC04IDgtMTRjMC00LjQtMy42LTgtOC04eiIgZmlsbD0id2hpdGUiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjEzIiByPSIzLjUiIGZpbGw9IiMyNTYzZWIiLz4KPC9zdmc+">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAvElEQVR42u2X0Q2AIAxE5eIIOoIuJmPpYjqC7KC/lRSVIiUm9A8NvPOuktQ0Xg3TfjQZa1t6Q9fQhHMMaMI5FrThvghTAk6rlWxa5y74brQu6izEgu/gT+KSBeQopNg+WsdaHuOC2AEKjs09WQAHlIrI1gNvY4Dkq7nD/WdvHYHUegqUwsU3YcheSR/8twmL/oZFbsIq4KuurxFUAZ8LSG3EGgH8WU2ztqU34AZGLfglAk0RlIW70VljPD8B5ktRBFcof8QAAAAASUVORK5CYII=">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAADk0lEQVR42u3d7VXbQBCGUe0eSohLII2RsuLG4hJID6SCANbn7jv3+c+xJV2PRwYnbbmw17f3j0VxPe63dtVjN3iVhLxBrCTcDWQlwW4gKwl2A1lJsDvMGqU9LHWYlYS6gaykFaTDrKRp3WFWEuoOs5JQd5iVhLrDrCTU3WlSUt10VtKU7jArCXWHWUmo7dDK3qFNZ808pU1o5U5o01mzT2kTWpkT2nRWwpQ2oZW7Q0sRoK0bSlk7TGhZOSSgpRN6cQr268/vH6t+7uevv07eTjU3hNcghhvoWMRwAx2LGG6goyHD/Vw+5ZgM88jPC+iBIY+OBmqg46BAbYeOxWGvNqGjJp1pDXQcBKiLg04EUB11h9mxAe2CO0agJaBNLscKtAtc95itHALapHLso+YrWAf11a+i/RLkmEr8Lcfo3zDxDRgTeqpp/N2fN7Xt0JdPvz2n3tETtMILxqccgwH0Z6BAx2CGGuhL3mLPAHfUY6SvHSb0wNPTpAY6DhjUQJe5o3duTOgpJ6UpDbSAloC2blg7gJaAloDW/0r96A5oAe1GzvkB2kVzXoB28ZwPoHe/iCPcQO3xHCq8uMvcFFaf1FWOv7uojhvoghf3yrVjy2NXexGX/By6ykWu+I7kFyuDT+m1j1l1vSoLeobVA2agY1DDDHQMapiBjkENM9AxqGHenv8aeUegV7woYAb6lKl7xj94DjPQQ9z0Xb0m2aHt1J4f0FDDDDQ8MANdBRHMQMdgghnoGFQwAx2DC2agvXiA1mjQYAY6BjXMQMeghhnoGNQwAx2DGmagY1DDDHQMapiBloAW0BLQ9mg7MdDwC2gJaAEtAS0BLQEtAX1sPo4DWgJaAtpaArQEtAS0BLQEtJs+oCWgJaAloO3XAlpAS0BLQNuVBbSAloCWgJaAdqMooAW0BLSsGEBLQEtAC2gJaAloCeiJ8xEe0CALaAEtAS0BbY8W0BLQqgj6cb81p0EJPe63ZkLLyiEBLQEtrQDtxlAJN4QmtKwc0hSgrR2afd0woZW9cpjSmnk6m9DKvyk0pTXrdDahlT+hTWnNOp0/ndBQazbMX64cUGsmzHZo1dihTWnNOJ2/PaGh1gyYn1o5oNbomJ/eoaHWyJhX3RRCrVExL8uybML5+vb+4bRrBMirJ7RprVExbwYNtUbCvHnlsIJoFMiHgAZbV7+7H7ougK2z19TT9l+4IT7jcS69oYMc3r37B/dgroBqHt2dAAAAAElFTkSuQmCC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="営業CRM">
 <meta name="theme-color" content="#2563eb">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -193,7 +196,7 @@
 <div class="page active" id="page-map">
   <div id="mapWrapper">
     <!-- Setup panel (no API key) -->
-    <div id="mapSetupPanel">
+    <div id="mapSetupPanel" style="display:none;">
       <div class="setup-card">
         <div class="setup-title">🗺️ Google Maps APIキー設定</div>
         <div class="key-row">
@@ -332,7 +335,7 @@
 <!-- 履歴モーダル -->
 <div class="modal-overlay" id="modalHistory">
   <div class="modal">
-    <div class="modal-title">営業履歴を記録</div>
+    <div class="modal-title" id="modalHistoryTitle">営業履歴を記録</div>
     <div class="form-group"><label>顧客 *</label><select id="h_customer"></select></div>
     <div class="form-group"><label>タイプ</label>
       <select id="h_type">
@@ -354,7 +357,7 @@
     <div class="form-group"><label>次回訪問予定</label><input type="date" id="h_nextVisit"></div>
     <div class="btn-row">
       <button class="btn btn-cancel" onclick="closeModal('modalHistory')">キャンセル</button>
-      <button class="btn btn-primary" onclick="saveHistory()">記録する</button>
+      <button class="btn btn-primary" id="histSaveBtn" onclick="saveHistory()">記録する</button>
     </div>
   </div>
 </div>
@@ -433,7 +436,7 @@ function dotSvg(color) {
 var dotColorSvg = { hot: dotSvg('#ef4444'), warm: dotSvg('#f97316'), cool: dotSvg('#3b82f6'), cold: dotSvg('#6b7280') };
 var markerColor = { hot:'#ef4444', warm:'#f97316', cool:'#3b82f6', cold:'#6b7280' };
 
-function getApiKey() { return localStorage.getItem('gmaps_api_key') || ''; }
+function getApiKey() { return 'AIzaSyDTE8gMpxRJo19XZX-y8rmDpNtW4hyz0go'; }
 function getDayDiff(d) {
   if (!d) return null;
   var today = new Date(); today.setHours(0,0,0,0);
@@ -504,17 +507,12 @@ function switchTab(tab) {
 
 // MAP
 function renderMapTab() {
-  renderPseudoPins();
   var key = getApiKey();
-  if (key) {
-    document.getElementById('mapSetupPanel').style.display = 'none';
-    document.getElementById('mapRealPanel').style.display = 'block';
-    if (!mapScriptLoaded) loadMapScript(key);
-    else if (googleMap) { updateMapMarkers(); centerToCurrentLocation(); }
-  } else {
-    document.getElementById('mapSetupPanel').style.display = 'block';
-    document.getElementById('mapRealPanel').style.display = 'none';
-  }
+  document.getElementById('mapSetupPanel').style.display = 'none';
+  document.getElementById('mapRealPanel').style.display = 'block';
+  if (!mapScriptLoaded) loadMapScript(key);
+  else if (googleMap) { updateMapMarkers(); centerToCurrentLocation(); }
+  renderPseudoPins();
 }
 function saveApiKey() {
   var key = document.getElementById('apiKeyInput').value.trim();
@@ -541,70 +539,18 @@ function loadMapScript(key) {
 
     // ===== スマホタッチ（ピンチ完全対策版）=====
     var mapDiv = document.getElementById('mapEl');
-    var touchTimer = null;
-    var touchStartX = 0, touchStartY = 0;
     var ripple = document.getElementById('pressRipple');
-    // スマホ長押し：Google Maps の longpress イベントを使用（最も確実な方法）
-    // これによりピンチ・ダブルタップとの競合を完全に排除
+
+    // ======= スマホ長押し（完全解決版）=======
+    // Google Maps の longpress イベントを使用
+    // Google Mapsが内部でピンチ/ダブルタップを処理し、
+    // 純粋な長押しのみ longpress として発火する
     googleMap.addListener('longpress', function(e) {
-      addCustomerAtLatLng(e.latLng.lat(), e.latLng.lng());
-    });
-
-    // longpress が発火しないブラウザ向けのフォールバック
-    var touchTimer2 = null;
-    var touchStartX2 = 0, touchStartY2 = 0;
-    var touchCount = 0;
-    var ripple = document.getElementById('pressRipple');
-
-    google.maps.event.addDomListener(mapDiv, 'touchstart', function(e) {
-      touchCount = e.touches.length;
-      if (e.touches.length !== 1) {
-        clearTimeout(touchTimer2);
-        ripple.classList.remove('active');
-        return;
-      }
-      var touch = e.touches[0];
-      touchStartX2 = touch.clientX;
-      touchStartY2 = touch.clientY;
-      ripple.style.left = touch.clientX + 'px';
-      ripple.style.top = touch.clientY + 'px';
+      ripple.style.left = (window.innerWidth / 2) + 'px';
+      ripple.style.top = (window.innerHeight / 2) + 'px';
       ripple.classList.add('active');
-      touchTimer2 = setTimeout(function() {
-        ripple.classList.remove('active');
-        var proj = googleMap.getProjection();
-        var bounds = googleMap.getBounds();
-        if (!proj || !bounds || touchCount !== 1) return;
-        var mb = mapDiv.getBoundingClientRect();
-        var ne = proj.fromLatLngToPoint(bounds.getNorthEast());
-        var sw = proj.fromLatLngToPoint(bounds.getSouthWest());
-        var scale = Math.pow(2, googleMap.getZoom());
-        var latlng = proj.fromPointToLatLng(new google.maps.Point(
-          sw.x + ((touchStartX2 - mb.left) / scale),
-          ne.y + ((touchStartY2 - mb.top) / scale)
-        ));
-        addCustomerAtLatLng(latlng.lat(), latlng.lng());
-      }, 800);
-    });
-
-    google.maps.event.addDomListener(mapDiv, 'touchend', function(e) {
-      touchCount = e.touches.length;
-      clearTimeout(touchTimer2);
-      ripple.classList.remove('active');
-    });
-
-    google.maps.event.addDomListener(mapDiv, 'touchmove', function(e) {
-      touchCount = e.touches.length;
-      if (e.touches.length !== 1) {
-        clearTimeout(touchTimer2);
-        ripple.classList.remove('active');
-        return;
-      }
-      var dx = e.touches[0].clientX - touchStartX2;
-      var dy = e.touches[0].clientY - touchStartY2;
-      if (Math.sqrt(dx*dx + dy*dy) > 8) {
-        clearTimeout(touchTimer2);
-        ripple.classList.remove('active');
-      }
+      setTimeout(function(){ ripple.classList.remove('active'); }, 300);
+      addCustomerAtLatLng(e.latLng.lat(), e.latLng.lng());
     });
     updateMapMarkers(); centerToCurrentLocation();
   };
@@ -1046,13 +992,19 @@ function renderDetailHistory(id) {
   document.getElementById('detailHistoryList').innerHTML=cHist.length
     ? cHist.map(function(h){
         return '<div class="hist-item">'+getTypeIconHtml(h.type)
-          +'<div class="hist-body"><div style="font-size:13px;font-weight:600;color:var(--text);">'+(typeLabel[h.type]||'その他')+'</div>'
+          +'<div class="hist-body"><div style="font-size:13px;font-weight:600;color:var(--text);">'+( typeLabel[h.type]||'その他')+'</div>'
           +'<div class="hist-meta">'+h.date+(h.time?' '+h.time:'')+'</div>'
           +(h.note?'<div class="hist-note">'+h.note+'</div>':'')
           +(h.statusChange?'<div style="font-size:12px;color:var(--primary);margin-top:2px;">→ '+statusLabel[h.statusChange]+'</div>':'')
-          +'</div><button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
-          +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
-          +'</button></div>';
+          +'</div>'
+          +'<div style="display:flex;flex-direction:column;gap:6px;align-items:center;">'
+          +'<button class="del-btn" style="color:var(--primary);" onclick="editHistoryItem(\''+h.id+'\')">'
+          +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+          +'</button>'
+          +'<button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
+          +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+          +'</button>'
+          +'</div></div>';
       }).join('')
     : '<div style="color:var(--text-sub);font-size:13px;padding:10px 0;text-align:center;">履歴なし</div>';
 }
@@ -1135,10 +1087,16 @@ function saveCustomer() {
 }
 
 // HISTORY
+var editingHistoryId = null;
+
 function openRecordHistory(customerId) {
   if (!customers.length) { alert('先に顧客を追加してください'); return; }
+  editingHistoryId = null;
+  document.getElementById('modalHistoryTitle').textContent = '営業履歴を記録';
+  document.getElementById('histSaveBtn').textContent = '記録する';
   var sel=document.getElementById('h_customer');
   sel.innerHTML=customers.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');
+  sel.disabled = false;
   if (customerId) sel.value=customerId;
   var now=new Date();
   document.getElementById('h_date').value=now.toISOString().split('T')[0];
@@ -1147,15 +1105,52 @@ function openRecordHistory(customerId) {
   document.getElementById('h_status').value=''; document.getElementById('h_nextVisit').value='';
   document.getElementById('modalHistory').classList.add('open');
 }
+
+function editHistoryItem(id) {
+  var h = histories.find(function(x){ return x.id === id; });
+  if (!h) return;
+  editingHistoryId = id;
+  document.getElementById('modalHistoryTitle').textContent = '営業履歴を編集';
+  document.getElementById('histSaveBtn').textContent = '更新する';
+  var sel = document.getElementById('h_customer');
+  sel.innerHTML = customers.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');
+  sel.value = h.customerId;
+  sel.disabled = false; // 顧客変更可能
+  document.getElementById('h_type').value = h.type || 'visit';
+  document.getElementById('h_date').value = h.date || '';
+  document.getElementById('h_time').value = h.time || '';
+  document.getElementById('h_note').value = h.note || '';
+  document.getElementById('h_status').value = h.statusChange || '';
+  document.getElementById('h_nextVisit').value = '';
+  document.getElementById('modalHistory').classList.add('open');
+}
+
 function saveHistory() {
   var date=document.getElementById('h_date').value; if (!date) { alert('日付を入力してください'); return; }
   var customerId=document.getElementById('h_customer').value;
   var sc=document.getElementById('h_status').value, nv=document.getElementById('h_nextVisit').value;
-  addHistoryToDb({customerId:customerId,type:document.getElementById('h_type').value,date:date,
-    time:document.getElementById('h_time').value,note:document.getElementById('h_note').value.trim(),statusChange:sc||null});
-  if (sc||nv) { var upd={}; if(sc) upd.status=sc; if(nv) upd.nextVisit=nv; updateCustomerInDb(customerId,upd); }
-  closeModal('modalHistory'); showToast('履歴を記録しました');
+  var data = {
+    customerId: customerId,
+    type: document.getElementById('h_type').value,
+    date: date,
+    time: document.getElementById('h_time').value,
+    note: document.getElementById('h_note').value.trim(),
+    statusChange: sc||null
+  };
+  if (editingHistoryId) {
+    // 編集モード：既存履歴を更新
+    window._updateDoc(window._doc(window._db,'histories',editingHistoryId), data)
+      .then(function(){ showToast('履歴を更新しました'); });
+    editingHistoryId = null;
+  } else {
+    // 新規モード
+    addHistoryToDb(data);
+    if (sc||nv) { var upd={}; if(sc) upd.status=sc; if(nv) upd.nextVisit=nv; updateCustomerInDb(customerId,upd); }
+    showToast('履歴を記録しました');
+  }
+  closeModal('modalHistory');
 }
+
 function deleteHistoryItem(id) { deleteHistoryFromDb(id).then(function(){showToast('履歴を削除しました');}); }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -1171,22 +1166,18 @@ document.querySelectorAll('.modal-overlay').forEach(function(o){
   // Firebase準備完了イベントを受け取って同期開始
   window.addEventListener('firebaseReady', function() {
     startFirestoreSync();
-    // APIキーが保存済みなら地図も起動
-    if (key) {
-      document.getElementById('mapSetupPanel').style.display = 'none';
-      document.getElementById('mapRealPanel').style.display = 'block';
-      loadMapScript(key);
-    }
+    // APIキーは固定なので常に地図を起動
+    document.getElementById('mapSetupPanel').style.display = 'none';
+    document.getElementById('mapRealPanel').style.display = 'block';
+    loadMapScript(getApiKey());
   });
 
   // すでにfirebaseReadyが発火済みの場合（まれ）
   if (window._firebaseReady) {
     startFirestoreSync();
-    if (key) {
-      document.getElementById('mapSetupPanel').style.display = 'none';
-      document.getElementById('mapRealPanel').style.display = 'block';
-      loadMapScript(key);
-    }
+    document.getElementById('mapSetupPanel').style.display = 'none';
+    document.getElementById('mapRealPanel').style.display = 'block';
+    loadMapScript(getApiKey());
   }
 })();
 </script>
