@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>営業CRM</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPgogIDxwYXRoIGQ9Ik0xNiA1QzExLjYgNSA4IDguNiA4IDEzYzAgNiA4IDE0IDggMTRzOC04IDgtMTRjMC00LjQtMy42LTgtOC04eiIgZmlsbD0id2hpdGUiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjEzIiByPSIzLjUiIGZpbGw9IiMyNTYzZWIiLz4KPC9zdmc+">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzI1NjNlYiIvPgogIDxwYXRoIGQ9Ik0xNiA1QzExLjYgNSA4IDguNiA4IDEzYzAgNiA4IDE0IDggMTRzOC04IDgtMTRjMC00LjQtMy42LTgtOC04eiIgZmlsbD0id2hpdGUiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjEzIiByPSIzLjUiIGZpbGw9IiMyNTYzZWIiLz4KPC9zdmc+">
+<meta name="theme-color" content="#2563eb">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -541,67 +544,68 @@ function loadMapScript(key) {
     var touchTimer = null;
     var touchStartX = 0, touchStartY = 0;
     var ripple = document.getElementById('pressRipple');
-    var isPinching = false;
+    // スマホ長押し：Google Maps の longpress イベントを使用（最も確実な方法）
+    // これによりピンチ・ダブルタップとの競合を完全に排除
+    googleMap.addListener('longpress', function(e) {
+      addCustomerAtLatLng(e.latLng.lat(), e.latLng.lng());
+    });
 
-    mapDiv.addEventListener('touchstart', function(e) {
-      // 2本指以上は即座にピンチフラグON＆タイマーキャンセル
-      if (e.touches.length >= 2) {
-        isPinching = true;
-        clearTimeout(touchTimer);
+    // longpress が発火しないブラウザ向けのフォールバック
+    var touchTimer2 = null;
+    var touchStartX2 = 0, touchStartY2 = 0;
+    var touchCount = 0;
+    var ripple = document.getElementById('pressRipple');
+
+    google.maps.event.addDomListener(mapDiv, 'touchstart', function(e) {
+      touchCount = e.touches.length;
+      if (e.touches.length !== 1) {
+        clearTimeout(touchTimer2);
         ripple.classList.remove('active');
         return;
       }
-      // ピンチ中は1本指になっても無視
-      if (isPinching) return;
-
       var touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
+      touchStartX2 = touch.clientX;
+      touchStartY2 = touch.clientY;
       ripple.style.left = touch.clientX + 'px';
       ripple.style.top = touch.clientY + 'px';
       ripple.classList.add('active');
-
-      touchTimer = setTimeout(function() {
+      touchTimer2 = setTimeout(function() {
         ripple.classList.remove('active');
         var proj = googleMap.getProjection();
         var bounds = googleMap.getBounds();
-        if (proj && bounds) {
-          var mb = mapDiv.getBoundingClientRect();
-          var ne = proj.fromLatLngToPoint(bounds.getNorthEast());
-          var sw = proj.fromLatLngToPoint(bounds.getSouthWest());
-          var scale = Math.pow(2, googleMap.getZoom());
-          var latlng = proj.fromPointToLatLng(new google.maps.Point(
-            sw.x + ((touchStartX - mb.left) / scale),
-            ne.y + ((touchStartY - mb.top) / scale)
-          ));
-          addCustomerAtLatLng(latlng.lat(), latlng.lng());
-        }
+        if (!proj || !bounds || touchCount !== 1) return;
+        var mb = mapDiv.getBoundingClientRect();
+        var ne = proj.fromLatLngToPoint(bounds.getNorthEast());
+        var sw = proj.fromLatLngToPoint(bounds.getSouthWest());
+        var scale = Math.pow(2, googleMap.getZoom());
+        var latlng = proj.fromPointToLatLng(new google.maps.Point(
+          sw.x + ((touchStartX2 - mb.left) / scale),
+          ne.y + ((touchStartY2 - mb.top) / scale)
+        ));
+        addCustomerAtLatLng(latlng.lat(), latlng.lng());
       }, 800);
-    }, {passive: true});
+    });
 
-    mapDiv.addEventListener('touchend', function(e) {
-      // 全ての指が離れたらピンチフラグリセット
-      if (e.touches.length === 0) isPinching = false;
-      clearTimeout(touchTimer);
+    google.maps.event.addDomListener(mapDiv, 'touchend', function(e) {
+      touchCount = e.touches.length;
+      clearTimeout(touchTimer2);
       ripple.classList.remove('active');
-    }, {passive: true});
+    });
 
-    mapDiv.addEventListener('touchmove', function(e) {
-      if (e.touches.length >= 2) {
-        isPinching = true;
-        clearTimeout(touchTimer);
+    google.maps.event.addDomListener(mapDiv, 'touchmove', function(e) {
+      touchCount = e.touches.length;
+      if (e.touches.length !== 1) {
+        clearTimeout(touchTimer2);
         ripple.classList.remove('active');
         return;
       }
-      if (e.touches.length > 0) {
-        var dx = e.touches[0].clientX - touchStartX;
-        var dy = e.touches[0].clientY - touchStartY;
-        if (Math.sqrt(dx*dx + dy*dy) > 10) {
-          clearTimeout(touchTimer);
-          ripple.classList.remove('active');
-        }
+      var dx = e.touches[0].clientX - touchStartX2;
+      var dy = e.touches[0].clientY - touchStartY2;
+      if (Math.sqrt(dx*dx + dy*dy) > 8) {
+        clearTimeout(touchTimer2);
+        ripple.classList.remove('active');
       }
-    }, {passive: true});
+    });
     updateMapMarkers(); centerToCurrentLocation();
   };
   var s=document.createElement('script');
@@ -779,22 +783,26 @@ function addCustomerAtLatLng(lat, lng) {
   pendingLatLng = {lat: lat, lng: lng};
   showToast('住所を取得中...');
   if (window.google && window.google.maps) {
-    new google.maps.Geocoder().geocode(
-      { location: {lat: lat, lng: lng}, language: 'ja' },
-      function(res, status) {
-        var addr = '';
-        if (status === 'OK' && res && res.length > 0) {
-          // 最も詳細な住所レベルのものを選択
-          for (var i = 0; i < res.length; i++) {
-            var fa = res[i].formatted_address || '';
-            // 「日本、〒xxx-xxxx 住所」→ 住所だけ抽出
-            fa = fa.replace(/^日本[、,\s]+/, '').replace(/^〒[\d\-]+\s*/, '').trim();
-            if (fa && fa.length > 3) { addr = fa; break; }
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ location: {lat: lat, lng: lng} }, function(res, status) {
+      var addr = '';
+      if (status === 'OK' && res && res.length > 0) {
+        for (var i = 0; i < res.length; i++) {
+          var fa = res[i].formatted_address || '';
+          // 「日本、〒xxx-xxxx 住所」→ 住所だけ抽出
+          var cleaned = fa
+            .replace(/^日本[、,，]\s*/, '')
+            .replace(/^〒[\d\-]+\s*/, '')
+            .replace(/^日本\s*/, '')
+            .trim();
+          if (cleaned && cleaned.length > 3) {
+            addr = cleaned;
+            break;
           }
         }
-        openAddCustomer(addr);
       }
-    );
+      openAddCustomer(addr);
+    });
   } else {
     openAddCustomer('');
   }
