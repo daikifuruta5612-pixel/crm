@@ -918,7 +918,7 @@ function filterBy(f, el) {
 // HISTORY
 function renderHistories() {
   var list = document.getElementById('historyList');
-  if (!histories.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">履歴がありません</div></div>'; return; }
+  if (!histories.length) { list.innerHTML = '<div class="empty"><div class="empty-icon" style="display:flex;justify-content:center;"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="empty-text">履歴がありません</div></div>'; return; }
   list.innerHTML = histories.map(function(h){
     var c=customers.find(function(x){return x.id===h.customerId;});
     return '<div class="card" style="cursor:default;">'
@@ -927,9 +927,14 @@ function renderHistories() {
       +'<div style="flex:1;"><div style="font-weight:600;font-size:15px;">'+(c?c.name:'不明')+'</div>'
       +'<div style="font-size:12px;color:var(--text-sub);margin-top:2px;">'+(typeLabel[h.type]||'')+' | '+h.date+(h.time?' '+h.time:'')+'</div>'
       +(h.note?'<div style="font-size:13px;margin-top:5px;">'+h.note+'</div>':'')+'</div>'
-      +'<button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
-      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+      +'<div style="display:flex;flex-direction:column;gap:6px;align-items:center;">'
+      +'<button class="del-btn" style="color:var(--primary);" onclick="editHistoryItem(\''+h.id+'\')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
       +'</button>'
+      +'<button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
+      +'</button>'
+      +'</div>'
       +'</div></div>';
   }).join('');
 }
