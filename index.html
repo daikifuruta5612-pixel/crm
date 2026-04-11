@@ -245,6 +245,13 @@ textarea.form-input{height:70px;resize:none}
 <!-- CUSTOMERS -->
 <div class="page" id="page-customers">
   <div class="page-scroll">
+    <!-- 検索バー -->
+    <div style="position:relative;margin-bottom:10px;">
+      <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.45" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="custSearch" type="text" placeholder="顧客を検索..."
+        style="width:100%;padding:10px 12px 10px 34px;border:1.5px solid var(--border);border-radius:var(--radius-full);font-size:14px;background:var(--card);font-family:inherit;-webkit-appearance:none;outline:none;"
+        oninput="renderCustomers()">
+    </div>
     <div class="chips" id="custChips">
       <div class="chip active" onclick="filterCustomers('all',this)">すべて</div>
       <div class="chip" onclick="filterCustomers('hot',this)"><span class="chip-dot" style="background:var(--hot)"></span>ホット</div>
@@ -465,7 +472,19 @@ function closeOverlay(id){document.getElementById(id).classList.remove('open')}
 function svgIcon(type){return TYPE_SVG[type]||TYPE_SVG.other}
 
 /* ===== FIREBASE ===== */
-function addC(data){data.createdAt=Date.now();return window.$add(window.$col(window.$db,'customers'),data)}
+function generateCustomerId(){
+  // 既存顧客のIDから最大値を取得して+1
+  const nums=state.customers
+    .map(c=>parseInt((c.customerId||'').replace(/[^0-9]/g,''))||0)
+    .filter(n=>n>0);
+  const max=nums.length?Math.max(...nums):0;
+  return 'C'+(String(max+1).padStart(4,'0')); // 例: C0001, C0042
+}
+function addC(data){
+  data.createdAt=Date.now();
+  if(!data.customerId)data.customerId=generateCustomerId();
+  return window.$add(window.$col(window.$db,'customers'),data);
+}
 function updC(id,data){return window.$upd(window.$doc(window.$db,'customers',id),data)}
 function delC(id){return window.$del(window.$doc(window.$db,'customers',id))}
 function addH(data){data.timestamp=Date.now();return window.$add(window.$col(window.$db,'histories'),data)}
@@ -539,14 +558,11 @@ window._initMap=function(){
   state.map.addListener('mouseup',()=>clearTimeout(pcTimer));
   state.map.addListener('dragstart',()=>clearTimeout(pcTimer));
 
-  // ===== スマホ長押し：longpressのみ（最終・完全版）=====
-  // Google Maps の longpress イベントはピンチ・スクロール・ダブルタップを
-  // Maps内部で完全に除外した後にのみ発火する。
-  // タッチリスナーは一切使わない。
-  state.map.addListener('longpress', function(e) {
-    showRipple(window.innerWidth/2, window.innerHeight/2);
-    addAtLatLng(e.latLng.lat(), e.latLng.lng());
-  });
+  // ===== スマホ長押し =====
+  // longpressイベントはピンチ時にも発火するケースがあるため使用しない
+  // スマホは「＋」ボタン（現在地に追加）を使用
+  // PCのみ長押しに対応
+  
 
   updateMarkers();
   goToCurrentLocation();
@@ -930,6 +946,7 @@ function openDetail(id){
   document.getElementById('detailName').textContent=c.name;
   document.getElementById('detailBadge').innerHTML=`<span class="badge badge-${c.status}">${STATUS_LABEL[c.status]||''}</span>`;
   let info='';
+  if(c.customerId)info+=`<div class="info-row"><span class="info-label">顧客ID</span><span class="info-value" style="font-family:monospace;letter-spacing:.05em">${c.customerId}</span></div>`;
   if(c.phone)info+=`<div class="info-row"><span class="info-label">電話</span><span class="info-value"><a href="tel:${c.phone}" style="color:var(--primary)">${c.phone}</a></span></div>`;
   if(c.address)info+=`<div class="info-row"><span class="info-label">住所</span><span class="info-value">${c.address}</span></div>`;
   if(c.needs)info+=`<div class="info-row"><span class="info-label">ニーズ</span><span class="info-value">${c.needs}</span></div>`;
@@ -986,7 +1003,13 @@ function closeDetail(){document.getElementById('detail').classList.remove('open'
 /* ===== CUSTOMERS RENDER ===== */
 function renderCustomers(){
   const el=document.getElementById('custList');
-  const arr=state.customers.filter(c=>state.custFilter==='all'||c.status===state.custFilter);
+  const q=(document.getElementById('custSearch')?.value||'').trim().toLowerCase();
+  const arr=state.customers.filter(c=>{
+    if(state.custFilter!=='all'&&c.status!==state.custFilter)return false;
+    if(!q)return true;
+    // 氏名・電話・住所・ニーズ・メモ・IDで検索
+    return [c.name,c.phone,c.address,c.needs,c.memo,c.customerId].some(v=>v&&v.toLowerCase().includes(q));
+  });
   if(!arr.length){el.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>顧客がいません<br>右上の「追加」から追加してください</p></div>`;return}
   el.innerHTML=arr.map(c=>{
     const d=dayDiff(c.nextVisit);
@@ -1001,6 +1024,7 @@ function renderCustomers(){
     return `<div class="card" onclick="openDetail('${c.id}')">
       <div class="card-row">
         <span class="card-name">${c.name}</span>
+        ${c.customerId?`<span style="font-size:10px;color:var(--text-sub);background:var(--bg);padding:1px 6px;border-radius:var(--radius-full);border:1px solid var(--border);">${c.customerId}</span>`:''}
         <span class="badge badge-${c.status}">${STATUS_LABEL[c.status]||''}</span>
         ${visits>0?`<span class="visit-badge${visits>=5?' over':''}">訪${visits}</span>`:''}
       </div>
