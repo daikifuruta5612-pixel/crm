@@ -529,16 +529,85 @@ window._initMap=function(){
     mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
     gestureHandling:'greedy',zoomControl:false
   });
-  // PC long press
-  let pt;
-  state.map.addListener('mousedown',e=>{pt=setTimeout(()=>addAtLatLng(e.latLng.lat(),e.latLng.lng()),500)});
-  state.map.addListener('mouseup',()=>clearTimeout(pt));
-  state.map.addListener('dragstart',()=>clearTimeout(pt));
-  // Smartphone: Google Maps longpress event (pinch-safe)
-  state.map.addListener('longpress',e=>{
-    showRipple(window.innerWidth/2,window.innerHeight/2);
-    addAtLatLng(e.latLng.lat(),e.latLng.lng());
+
+  // ===== PC: 長押し登録 =====
+  let pcTimer;
+  state.map.addListener('mousedown',e=>{
+    pcTimer=setTimeout(()=>addAtLatLng(e.latLng.lat(),e.latLng.lng()),700);
   });
+  state.map.addListener('mouseup',()=>clearTimeout(pcTimer));
+  state.map.addListener('dragstart',()=>clearTimeout(pcTimer));
+
+  // ===== スマホ: 長押し登録（ピンチ完全分離版）=====
+  const mapDiv=document.getElementById('mapEl');
+  let touchTimer=null;
+  let touchStartX=0,touchStartY=0;
+  let touchActive=false; // 現在有効なタッチセッションか
+
+  // touchstart: 必ず1本指のときだけタイマー開始
+  mapDiv.addEventListener('touchstart',function(e){
+    // 最初から2本指以上 → ピンチ確定、何もしない
+    if(e.touches.length!==1){
+      touchActive=false;
+      clearTimeout(touchTimer);
+      return;
+    }
+    touchActive=true;
+    const t=e.touches[0];
+    touchStartX=t.clientX;
+    touchStartY=t.clientY;
+    clearTimeout(touchTimer);
+    touchTimer=setTimeout(function(){
+      if(!touchActive)return; // 途中でピンチになっていたら発火しない
+      showRipple(touchStartX,touchStartY);
+      const proj=state.map.getProjection();
+      const bounds=state.map.getBounds();
+      if(!proj||!bounds)return;
+      const mb=mapDiv.getBoundingClientRect();
+      const ne=proj.fromLatLngToPoint(bounds.getNorthEast());
+      const sw=proj.fromLatLngToPoint(bounds.getSouthWest());
+      const scale=Math.pow(2,state.map.getZoom());
+      const ll=proj.fromPointToLatLng(new google.maps.Point(
+        sw.x+(touchStartX-mb.left)/scale,
+        ne.y+(touchStartY-mb.top)/scale
+      ));
+      addAtLatLng(ll.lat(),ll.lng());
+    },700);
+  },{passive:true});
+
+  // touchmove: 2本指になった瞬間またはドラッグでキャンセル
+  mapDiv.addEventListener('touchmove',function(e){
+    if(e.touches.length>=2){
+      // ピンチ開始 → 即キャンセル＆セッション無効化
+      touchActive=false;
+      clearTimeout(touchTimer);
+      return;
+    }
+    if(e.touches.length===1){
+      const dx=e.touches[0].clientX-touchStartX;
+      const dy=e.touches[0].clientY-touchStartY;
+      // 10px以上動いたらドラッグとみなしキャンセル
+      if(Math.sqrt(dx*dx+dy*dy)>10){
+        clearTimeout(touchTimer);
+        touchActive=false;
+      }
+    }
+  },{passive:true});
+
+  // touchend: 全指が離れたらセッションリセット
+  mapDiv.addEventListener('touchend',function(e){
+    if(e.touches.length===0){
+      touchActive=false;
+      clearTimeout(touchTimer);
+    }
+  },{passive:true});
+
+  // touchcancel: 強制キャンセル
+  mapDiv.addEventListener('touchcancel',function(){
+    touchActive=false;
+    clearTimeout(touchTimer);
+  },{passive:true});
+
   updateMarkers();
   goToCurrentLocation();
 };
@@ -748,16 +817,28 @@ function addAtCurrentLocation(){
   navigator.geolocation.getCurrentPosition(p=>addAtLatLng(p.coords.latitude,p.coords.longitude),()=>toast('位置情報の取得に失敗しました'));
 }
 
+function cleanAddress(fa){
+  if(!fa)return'';
+  return fa
+    .replace(/^日本[、,，。\s]*/g,'')  // 先頭の「日本、」を除去
+    .replace(/〒[\d\-]+\s*/g,'')      // 「〒xxx-xxxx」をどこでも除去
+    .replace(/^日本\s*/g,'')            // 残った「日本」を除去
+    .replace(/,\s*日本\s*$/g,'')       // 末尾の「, 日本」を除去
+    .trim();
+}
+
 function addAtLatLng(lat,lng){
   if(!google?.maps?.Geocoder){openCustomerModal('',lat,lng);return}
   toast('住所を取得中...');
-  new google.maps.Geocoder().geocode({location:{lat,lng}},(res,status)=>{
+  new google.maps.Geocoder().geocode({location:{lat,lng},language:'ja'},(res,status)=>{
     let addr='';
     if(status==='OK'&&res?.length){
-      for(const r of res){
-        let fa=(r.formatted_address||'').replace(/^日本[、,，]\s*/,'').replace(/^〒[\d\-]+\s*/,'').trim();
-        if(fa&&fa.length>3){addr=fa;break}
-      }
+      // 最も詳細な住所を選ぶ（丁目・番地レベルを優先）
+      const candidates=res
+        .map(r=>cleanAddress(r.formatted_address||''))
+        .filter(a=>a.length>5);
+      // 都道府県を含む最初の候補を採用
+      addr=candidates.find(a=>/[都道府県]/.test(a))||candidates[0]||'';
     }
     openCustomerModal(addr,lat,lng);
   });
