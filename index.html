@@ -11,360 +11,352 @@
 <meta name="apple-mobile-web-app-title" content="営業CRM">
 <meta name="theme-color" content="#2563eb">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --primary: #2563eb; --bg: #f1f5f9; --card: #ffffff;
-    --text: #1e293b; --text-sub: #64748b; --border: #e2e8f0;
-    --hot: #ef4444; --warm: #f97316; --cool: #3b82f6; --cold: #6b7280;
-    --danger: #ef4444; --nav-h: 56px; --tab-h: 56px;
-  }
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
-  .nav { position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); background: var(--primary); color: #fff; display: flex; align-items: center; padding: 0 14px; z-index: 100; gap: 8px; }
-  .nav-title { font-size: 16px; font-weight: 700; flex: 1; }
-  /* ===== FLAT ICON SYSTEM ===== */
-  .icon { display: inline-flex; align-items: center; justify-content: center; }
-  /* NAV */
-  .nav-btn { background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.35); color: #fff; padding: 7px 14px; border-radius: 50px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
-  .nav-btn:active { background: rgba(255,255,255,0.32); }
-  /* TABS - フラットデザイン */
-  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: var(--text-sub); cursor: pointer; gap: 5px; transition: color 0.2s; }
-  .tab.active { color: var(--primary); }
-  .tab-icon-wrap { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--bg); border: 1.5px solid var(--border); transition: all 0.2s; }
-  .tab.active .tab-icon-wrap { background: #eff6ff; border-color: #bfdbfe; }
-  .tab svg { width: 22px; height: 22px; }
-  /* MAP CONTROLS */
-  .map-ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: 1.5px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: transform 0.12s; background: var(--card); }
-  .map-ctrl-btn:active { transform: scale(0.92); }
-  .map-ctrl-btn svg { width: 22px; height: 22px; }
-  /* ACTION BUTTONS */
-  .action-btn { padding: 10px 16px; border-radius: 50px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: opacity 0.15s; background: var(--card); color: var(--text); }
-  .action-btn:active { opacity: 0.8; }
-  .action-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-  .action-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .action-btn.green { background: #22c55e; color: #fff; border-color: #22c55e; }
-  .action-btn.danger { color: var(--danger); border-color: #fca5a5; }
-  .action-btn.neutral { color: var(--text-sub); }
-  .nav-sync { font-size: 11px; color: rgba(255,255,255,0.7); display: flex; align-items: center; gap: 4px; }
-  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; }
-  .sync-dot.offline { background: #f87171; }
-  .tabs { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-h); background: var(--card); border-top: 1px solid var(--border); display: flex; z-index: 100; }
-  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: var(--text-sub); cursor: pointer; gap: 2px; }
-  .tab.active { color: var(--primary); }
-  .tab-icon { font-size: 20px; }
-  .page { position: fixed; top: var(--nav-h); left: 0; right: 0; bottom: var(--tab-h); overflow-y: auto; display: none; padding: 12px; }
-  .page.active { display: block; }
-  #page-map { padding: 0; overflow: hidden; }
-  #mapWrapper { width: 100%; height: 100%; display: flex; flex-direction: column; }
-  #mapSetupPanel { overflow-y: auto; flex: 1; background: var(--bg); padding: 12px; }
-  #mapRealPanel { flex: 1; display: none; position: relative; }
-  #mapEl { width: 100%; height: 100%; }
-  /* MAP controls */
-  .map-ctrl { position: absolute; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 10; }
-  .map-ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(0,0,0,0.2); }
-  .map-ctrl-add { background: var(--primary); color: #fff; font-size: 26px; }
-  .map-ctrl-locate { background: var(--card); color: var(--text); }
-  .map-ctrl-bubble { background: #f59e0b; color: #fff; }
-  /* MAP filter bar */
-  .map-filter-bar { position: absolute; top: 8px; left: 8px; right: 8px; display: flex; gap: 6px; z-index: 10; overflow-x: auto; scrollbar-width: none; }
-  .map-filter-bar::-webkit-scrollbar { display: none; }
-  .map-chip { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: none; background: var(--card); font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
-  .map-chip.active { background: var(--primary); color: #fff; }
-  /* MAP list panel (PC) */
-  .map-list-panel { position: absolute; top: 0; left: 0; bottom: 0; width: 320px; background: var(--card); box-shadow: 2px 0 12px rgba(0,0,0,0.1); overflow-y: auto; z-index: 5; display: none; flex-direction: column; }
-  .map-list-panel.open { display: flex; }
-  .map-list-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card); position: sticky; top: 0; z-index: 1; }
-  .map-list-title { font-weight: 700; font-size: 15px; flex: 1; }
-  .map-list-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-sub); }
-  .map-list-body { flex: 1; overflow-y: auto; }
-  .map-list-item { padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; }
-  .map-list-item:hover { background: var(--bg); }
-  .map-list-item-name { font-weight: 600; font-size: 14px; }
-  .map-list-item-sub { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-  .map-list-footer { padding: 12px 14px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
-  .map-list-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .map-list-btn-excel { background: #16a34a; color: #fff; }
-  .map-list-btn-import { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
-  /* long press ripple */
-  .press-ripple { position: fixed; width: 60px; height: 60px; border-radius: 50%; background: rgba(37,99,235,0.3); border: 2px solid var(--primary); transform: translate(-50%,-50%) scale(0); transition: transform 0.7s ease, opacity 0.7s ease; pointer-events: none; z-index: 9999; opacity: 0; }
-  .press-ripple.active { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-  .setup-card { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
-  .setup-title { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
-  .key-row { display: flex; gap: 8px; margin-top: 10px; }
-  .key-row input { flex: 1; padding: 11px 12px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px; background: var(--bg); color: var(--text); }
-  .key-row input:focus { outline: none; border-color: var(--primary); background: #fff; }
-  .key-row button { padding: 11px 16px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .pin-list-card { background: var(--card); border-radius: 14px; padding: 16px; }
-  .pin-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-  .pin-item:last-child { border-bottom: none; }
-  .card { background: var(--card); border-radius: 12px; padding: 13px; margin-bottom: 9px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer; }
-  .card-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-  .card-name { font-weight: 600; font-size: 15px; flex: 1; }
-  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
-  .badge-hot { background: #fee2e2; color: var(--hot); }
-  .badge-warm { background: #ffedd5; color: var(--warm); }
-  .badge-cool { background: #dbeafe; color: var(--cool); }
-  .badge-cold { background: #f1f5f9; color: var(--cold); }
-  .card-sub { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-  .card-alert { font-size: 11px; font-weight: 700; margin-top: 6px; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; }
-  .card-alert.over { color: #fff; background: var(--danger); }
-  .card-alert.today { color: #fff; background: var(--warm); }
-  .card-alert.soon { color: #fff; background: var(--primary); }
-  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; }
-  .chip.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-end; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-height: 92vh; overflow-y: auto; padding: 20px 16px 40px; }
-  .modal-title { font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 16px; }
-  .form-group { margin-bottom: 13px; }
-  label { font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px; }
-  input[type=text], input[type=tel], input[type=date], input[type=time], select, textarea {
-    width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 10px;
-    font-size: 15px; font-family: inherit; background: var(--bg); color: var(--text);
-    -webkit-appearance: none; appearance: none;
-  }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); background: #fff; }
-  textarea { height: 68px; resize: none; }
-  .btn-row { display: flex; gap: 10px; margin-top: 16px; }
-  .btn { flex: 1; padding: 14px; border-radius: 12px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; }
-  .btn-primary { background: var(--primary); color: #fff; }
-  .btn-cancel { background: var(--bg); color: var(--text-sub); }
-  .detail-panel { position: fixed; inset: 0; background: var(--card); z-index: 150; display: none; flex-direction: column; overflow-y: auto; }
-  .detail-panel.open { display: flex; }
-  .detail-header { background: var(--primary); color: #fff; padding: 14px 16px; padding-top: calc(var(--nav-h) - 4px); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-  .detail-back { background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; line-height: 1; padding: 0 4px; }
-  .detail-name { font-size: 17px; font-weight: 700; flex: 1; }
-  .detail-body { padding: 14px; flex: 1; }
-  .info-row { display: flex; padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .info-label { width: 80px; font-size: 13px; color: var(--text-sub); flex-shrink: 0; padding-top: 1px; }
-  .info-value { font-size: 14px; flex: 1; line-height: 1.5; }
-  .sec-title { font-size: 13px; font-weight: 700; color: var(--text-sub); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .action-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-  .action-btn { padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border); background: var(--card); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-  .action-btn.danger { color: var(--danger); border-color: #fecaca; }
-  .action-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .action-btn.green { background: #22c55e; color: #fff; border-color: #22c55e; }
-  .hist-item { background: var(--bg); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; gap: 8px; align-items: flex-start; }
-  .hist-body { flex: 1; }
-  .hist-meta { font-size: 12px; color: var(--text-sub); }
-  .hist-note { font-size: 13px; margin-top: 3px; }
-  .del-btn { background: none; border: none; color: var(--danger); font-size: 16px; cursor: pointer; padding: 4px; flex-shrink: 0; }
-  .alert-item { background: var(--card); border-radius: 12px; padding: 13px; margin-bottom: 9px; border-left: 4px solid; cursor: pointer; }
-  .alert-over { border-color: var(--danger); } .alert-today { border-color: var(--warm); } .alert-soon { border-color: var(--primary); }
-  .alert-tag { font-size: 11px; font-weight: 700; margin-bottom: 5px; display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; }
-  .alert-over .alert-tag { color: #fff; background: var(--danger); }
-  .alert-today .alert-tag { color: #fff; background: var(--warm); }
-  .alert-soon .alert-tag { color: #fff; background: var(--primary); }
-  .empty { text-align: center; padding: 60px 20px; color: var(--text-sub); }
-  .empty-icon { font-size: 44px; margin-bottom: 10px; }
-  .empty-text { font-size: 14px; line-height: 1.7; }
-  .visit-badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--bg); color: var(--text-sub); margin-left: 4px; }
-  .visit-badge.over { background: #fee2e2; color: var(--danger); }
-  .toast { position: fixed; bottom: calc(var(--tab-h) + 16px); left: 50%; transform: translateX(-50%) translateY(20px); background: #1e293b; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.3s; z-index: 9999; white-space: nowrap; pointer-events: none; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
-  .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  /* hidden file input for import */
-  #importInput { display: none; }
+/* ===== RESET & BASE ===== */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --primary:#2563eb;--primary-light:#eff6ff;--primary-dark:#1d4ed8;
+  --hot:#ef4444;--warm:#f97316;--cool:#3b82f6;--cold:#6b7280;
+  --danger:#ef4444;--success:#22c55e;--warning:#f59e0b;
+  --bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-sub:#64748b;--border:#e2e8f0;
+  --nav-h:56px;--tab-h:60px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-full:999px;
+}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px}
+
+/* ===== NAV ===== */
+.nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);background:var(--primary);color:#fff;display:flex;align-items:center;padding:0 14px;z-index:200;gap:8px}
+.nav-title{font-size:16px;font-weight:700;flex:1}
+.sync-badge{display:flex;align-items:center;gap:4px;font-size:11px;color:rgba(255,255,255,.75)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;flex-shrink:0}
+.sync-dot.off{background:#f87171}
+.nav-btn{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;padding:6px 13px;border-radius:var(--radius-full);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap}
+.nav-btn:active{opacity:.8}
+
+/* ===== TABS ===== */
+.tabs{position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);background:var(--card);border-top:1px solid var(--border);display:flex;z-index:200}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:10px;font-weight:500;color:var(--text-sub);cursor:pointer}
+.tab.active{color:var(--primary)}
+.tab-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1.5px solid var(--border)}
+.tab.active .tab-icon{background:var(--primary-light);border-color:#bfdbfe}
+.tab svg{width:20px;height:20px}
+
+/* ===== PAGES ===== */
+.page{position:fixed;top:var(--nav-h);left:0;right:0;bottom:var(--tab-h);display:none;overflow-y:auto}
+.page.active{display:block}
+#page-map{overflow:hidden;padding:0}
+.page-scroll{padding:12px}
+
+/* ===== MAP ===== */
+#mapEl{width:100%;height:100%}
+.map-filters{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;z-index:10;overflow-x:auto;scrollbar-width:none;pointer-events:none}
+.map-filters::-webkit-scrollbar{display:none}
+.map-chip{flex-shrink:0;padding:5px 13px;border-radius:var(--radius-full);border:none;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);pointer-events:auto}
+.map-chip.all{background:#fff;color:var(--text)}
+.map-chip.hot{background:var(--hot);color:#fff}
+.map-chip.warm{background:var(--warm);color:#fff}
+.map-chip.cool{background:var(--cool);color:#fff}
+.map-chip.cold{background:var(--cold);color:#fff}
+.map-chip.active{box-shadow:0 2px 8px rgba(0,0,0,.3),inset 0 0 0 2px rgba(255,255,255,.5)}
+.map-ctrls{position:absolute;bottom:20px;right:14px;display:flex;flex-direction:column;gap:10px;z-index:10}
+.map-btn{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.14)}
+.map-btn:active{transform:scale(.92)}
+.map-btn svg{width:22px;height:22px}
+.map-btn.primary{background:var(--primary);border-color:var(--primary)}
+.ripple{position:fixed;width:56px;height:56px;border-radius:50%;background:rgba(37,99,235,.25);border:2px solid var(--primary);transform:translate(-50%,-50%) scale(0);transition:transform .6s,opacity .6s;pointer-events:none;z-index:9999;opacity:0}
+.ripple.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+
+/* ===== LIST PANEL ===== */
+.list-panel{position:absolute;top:0;bottom:0;left:0;width:min(320px,100%);background:var(--card);box-shadow:4px 0 16px rgba(0,0,0,.12);display:none;flex-direction:column;z-index:15}
+.list-panel.open{display:flex}
+.list-panel-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--card)}
+.list-panel-title{font-weight:700;font-size:14px;flex:1}
+.list-panel-body{flex:1;overflow-y:auto}
+.list-item{padding:11px 14px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px}
+.list-item:active{background:var(--bg)}
+.list-item-info{flex:1;min-width:0}
+.list-item-name{font-weight:600;font-size:14px}
+.list-item-sub{font-size:12px;color:var(--text-sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-panel-footer{border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px}
+.list-btn{flex:1;padding:10px;border-radius:var(--radius-sm);border:none;font-size:13px;font-weight:600;cursor:pointer}
+.list-btn.export{background:#16a34a;color:#fff}
+.list-btn.import{background:var(--bg);color:var(--text);border:1.5px solid var(--border)}
+
+/* ===== CARDS ===== */
+.card{background:var(--card);border-radius:var(--radius-md);padding:13px;margin-bottom:9px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.card-name{font-weight:600;font-size:15px;flex:1}
+.badge{font-size:11px;padding:2px 9px;border-radius:var(--radius-full);font-weight:600;white-space:nowrap}
+.badge-hot{background:#fee2e2;color:var(--hot)}
+.badge-warm{background:#ffedd5;color:var(--warm)}
+.badge-cool{background:#dbeafe;color:var(--cool)}
+.badge-cold{background:#f1f5f9;color:var(--cold)}
+.card-sub{font-size:12px;color:var(--text-sub);margin-top:3px;display:flex;align-items:center;gap:4px}
+.card-sub svg{flex-shrink:0;opacity:.6}
+.alert-pill{display:inline-flex;align-items:center;padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:700;margin-top:5px}
+.alert-pill.over{background:var(--hot);color:#fff}
+.alert-pill.today{background:var(--warm);color:#fff}
+.alert-pill.soon{background:var(--warning);color:#fff}
+.visit-badge{display:inline-flex;align-items:center;font-size:11px;padding:1px 7px;border-radius:var(--radius-full);background:var(--bg);color:var(--text-sub)}
+.visit-badge.over{background:#fee2e2;color:var(--hot)}
+
+/* ===== FILTERS ===== */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:6px 15px;border-radius:var(--radius-full);border:1.5px solid var(--border);background:var(--card);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.chip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ===== MODALS ===== */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;align-items:flex-end}
+.overlay.open{display:flex}
+.modal{background:var(--card);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:20px 16px 40px}
+.modal-title{font-size:17px;font-weight:700;text-align:center;margin-bottom:18px}
+.form-group{margin-bottom:13px}
+.form-label{font-size:13px;color:var(--text-sub);display:block;margin-bottom:5px}
+.form-input{width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;background:var(--bg);color:var(--text);-webkit-appearance:none}
+.form-input:focus{outline:none;border-color:var(--primary);background:#fff}
+textarea.form-input{height:70px;resize:none}
+.form-section{border-top:2px solid var(--border);margin:16px 0 14px;padding-top:14px}
+.form-section-title{font-size:14px;font-weight:700;margin-bottom:12px}
+.btn-row{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;padding:14px;border-radius:var(--radius-full);border:none;font-size:15px;font-weight:600;cursor:pointer}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-cancel{background:var(--bg);color:var(--text-sub)}
+.btn:active{opacity:.85}
+
+/* ===== DETAIL PANEL ===== */
+.detail{position:fixed;inset:0;background:var(--card);z-index:250;display:none;flex-direction:column;overflow-y:auto}
+.detail.open{display:flex}
+.detail-head{background:var(--primary);color:#fff;padding:14px 16px;padding-top:calc(var(--nav-h) - 4px);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.detail-back{background:none;border:none;color:#fff;font-size:28px;cursor:pointer;line-height:1;padding:0 4px}
+.detail-name{font-size:17px;font-weight:700;flex:1}
+.detail-body{padding:14px;flex:1}
+.info-row{display:flex;padding:10px 0;border-bottom:1px solid var(--border)}
+.info-label{width:80px;font-size:13px;color:var(--text-sub);flex-shrink:0}
+.info-value{font-size:14px;flex:1;line-height:1.5}
+.section-title{font-size:12px;font-weight:700;color:var(--text-sub);margin:16px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.action-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.action-btn{padding:9px 15px;border-radius:var(--radius-full);border:1.5px solid var(--border);background:var(--card);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px}
+.action-btn:active{opacity:.8}
+.action-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.action-btn.green{background:var(--success);color:#fff;border-color:var(--success)}
+.action-btn.danger{color:var(--danger);border-color:#fca5a5}
+
+/* ===== HISTORY ITEMS ===== */
+.hist-item{background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.hist-icon{width:34px;height:34px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hist-icon svg{width:16px;height:16px;color:#fff}
+.hist-body{flex:1;min-width:0}
+.hist-type{font-size:13px;font-weight:600}
+.hist-meta{font-size:12px;color:var(--text-sub);margin-top:1px}
+.hist-note{font-size:13px;margin-top:4px}
+.hist-actions{display:flex;flex-direction:column;gap:5px}
+.icon-btn{background:none;border:none;cursor:pointer;padding:3px;display:flex;align-items:center;justify-content:center}
+.icon-btn svg{width:15px;height:15px}
+.icon-btn.edit{color:var(--primary)}
+.icon-btn.del{color:var(--danger)}
+
+/* ===== ALERT ITEMS ===== */
+.alert-item{background:var(--card);border-radius:var(--radius-md);padding:13px;margin-bottom:9px;border-left:4px solid;cursor:pointer}
+.alert-item.over{border-color:var(--hot)}
+.alert-item.today{border-color:var(--warm)}
+.alert-item.soon{border-color:var(--warning)}
+.alert-tag{font-size:11px;font-weight:700;margin-bottom:4px;display:inline-flex;padding:2px 10px;border-radius:var(--radius-full);color:#fff}
+.alert-item.over .alert-tag{background:var(--hot)}
+.alert-item.today .alert-tag{background:var(--warm)}
+.alert-item.soon .alert-tag{background:var(--warning)}
+
+/* ===== EMPTY ===== */
+.empty{text-align:center;padding:60px 20px;color:var(--text-sub)}
+.empty svg{width:44px;height:44px;margin:0 auto 12px;display:block}
+.empty p{font-size:14px;line-height:1.7}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:calc(var(--tab-h) + 14px);left:50%;transform:translateX(-50%) translateY(16px);background:#1e293b;color:#fff;padding:9px 20px;border-radius:var(--radius-full);font-size:13px;opacity:0;transition:all .28s;z-index:9999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== LOADING ===== */
+.loading{position:fixed;inset:0;background:rgba(255,255,255,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-spinner"></div>
-  <div style="font-size:14px;color:var(--text-sub);">データを同期中...</div>
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p style="font-size:14px;color:var(--text-sub)">データを同期中...</p>
 </div>
 
-<div class="nav">
+<!-- NAV -->
+<nav class="nav">
   <span class="nav-title">🏢 営業CRM</span>
-  <div class="nav-sync" id="syncStatus"><span class="sync-dot" id="syncDot"></span><span id="syncText">同期中</span></div>
-  <button class="nav-btn" onclick="openAddCustomer('')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>追加
+  <div class="sync-badge"><span class="sync-dot" id="syncDot"></span><span id="syncText">同期中</span></div>
+  <button class="nav-btn" onclick="openCustomerModal()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>追加
   </button>
-  <button class="nav-btn" onclick="openRecordHistory(null)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>記録
+  <button class="nav-btn" onclick="openHistoryModal(null)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>記録
   </button>
-</div>
-
-<div class="toast" id="toast"></div>
-<div class="press-ripple" id="pressRipple"></div>
-<input type="file" id="importInput" accept=".csv" onchange="importCSV(event)">
+</nav>
 
 <!-- PAGES -->
+<!-- MAP -->
 <div class="page active" id="page-map">
-  <div id="mapWrapper">
-    <!-- Setup panel (no API key) -->
-    <div id="mapSetupPanel" style="display:none;">
-      <div class="setup-card">
-        <div class="setup-title">🗺️ Google Maps APIキー設定</div>
-        <div class="key-row">
-          <input type="text" id="apiKeyInput" placeholder="AIzaSy... を貼り付け" autocomplete="off" spellcheck="false">
-          <button onclick="saveApiKey()">保存</button>
-        </div>
-        <p style="font-size:11px;color:var(--text-sub);margin-top:8px;">※ キーはこのデバイスのみに保存されます</p>
-      </div>
-      <div class="pin-list-card">
-        <div style="font-size:14px;font-weight:700;margin-bottom:10px;">顧客の住所一覧</div>
-        <div id="pseudoPinList"></div>
-      </div>
+  <div id="mapEl"></div>
+  <div class="map-filters">
+    <button class="map-chip all active" onclick="setMapFilter('all',this)">全て</button>
+    <button class="map-chip hot" onclick="setMapFilter('hot',this)">ホット</button>
+    <button class="map-chip warm" onclick="setMapFilter('warm',this)">ウォーム</button>
+    <button class="map-chip cool" onclick="setMapFilter('cool',this)">クール</button>
+    <button class="map-chip cold" onclick="setMapFilter('cold',this)">コールド</button>
+  </div>
+  <div class="map-ctrls">
+    <button class="map-btn primary" onclick="addAtCurrentLocation()" title="現在地に追加">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="map-btn" onclick="goToCurrentLocation()" title="現在地" style="border-color:#2563eb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="3" fill="#2563eb"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+    </button>
+    <button class="map-btn" onclick="toggleAllBubbles()" title="全吹き出し" style="border-color:#f59e0b" id="bubbleBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+    <button class="map-btn" onclick="toggleListPanel()" title="一覧" style="border-color:#8b5cf6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="12" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="18" r="1.5" fill="#8b5cf6" stroke="none"/></svg>
+    </button>
+  </div>
+  <!-- LIST PANEL -->
+  <div class="list-panel" id="listPanel">
+    <div class="list-panel-header">
+      <span class="list-panel-title" id="listPanelTitle">ピン一覧</span>
+      <button class="icon-btn" onclick="toggleListPanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <!-- Real map panel -->
-    <div id="mapRealPanel">
-      <div id="mapEl"></div>
-      <!-- フィルターバー -->
-      <div class="map-filter-bar">
-        <button class="map-chip active" onclick="setMapFilter('all',this)">🗺 全て</button>
-        <button class="map-chip" onclick="setMapFilter('hot',this)" style="background:#ef4444;color:#fff;">● ホット</button>
-        <button class="map-chip" onclick="setMapFilter('warm',this)" style="background:#f97316;color:#fff;">● ウォーム</button>
-        <button class="map-chip" onclick="setMapFilter('cool',this)" style="background:#3b82f6;color:#fff;">● クール</button>
-        <button class="map-chip" onclick="setMapFilter('cold',this)" style="background:#6b7280;color:#fff;">● コールド</button>
-      </div>
-      <!-- コントロールボタン (B案: 丸形アウトライン) -->
-      <div class="map-ctrl">
-        <button class="map-ctrl-btn" onclick="addPinAtCurrentLocation()" title="現在地に追加" style="background:#2563eb;border-color:#2563eb;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <button class="map-ctrl-btn" onclick="centerToCurrentLocation()" title="現在地" style="border-color:#2563eb;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="3" fill="#2563eb"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
-        </button>
-        <button class="map-ctrl-btn" onclick="toggleAllBubbles()" title="全吹き出し" style="border-color:#f59e0b;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </button>
-        <button class="map-ctrl-btn" onclick="toggleMapList()" title="一覧" style="border-color:#8b5cf6;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="12" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="18" r="1.5" fill="#8b5cf6" stroke="none"/></svg>
-        </button>
-      </div>
-      <!-- ピン一覧パネル（PC向け） -->
-      <div class="map-list-panel" id="mapListPanel">
-        <div class="map-list-header">
-          <span class="map-list-title" id="mapListTitle">ピン一覧</span>
-          <button class="map-list-close" onclick="toggleMapList()">✕</button>
-        </div>
-        <div class="map-list-body" id="mapListBody"></div>
-        <div class="map-list-footer">
-          <button class="map-list-btn map-list-btn-excel" onclick="exportCSV()">📥 Excel書き出し</button>
-          <button class="map-list-btn map-list-btn-import" onclick="document.getElementById('importInput').click()">📤 インポート</button>
-        </div>
-      </div>
+    <div class="list-panel-body" id="listPanelBody"></div>
+    <div class="list-panel-footer">
+      <button class="list-btn export" onclick="exportCSV()">CSV書き出し</button>
+      <button class="list-btn import" onclick="document.getElementById('csvInput').click()">インポート</button>
     </div>
   </div>
 </div>
 
+<!-- CUSTOMERS -->
 <div class="page" id="page-customers">
-  <div class="chips">
-    <div class="chip active" onclick="filterBy('all',this)">すべて</div>
-    <div class="chip" onclick="filterBy('hot',this)" style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;"></span>ホット</div>
-    <div class="chip" onclick="filterBy('warm',this)" style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#f97316;display:inline-block;"></span>ウォーム</div>
-    <div class="chip" onclick="filterBy('cool',this)" style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block;"></span>クール</div>
-    <div class="chip" onclick="filterBy('cold',this)" style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#6b7280;display:inline-block;"></span>コールド</div>
+  <div class="page-scroll">
+    <div class="chips" id="custChips">
+      <div class="chip active" onclick="filterCustomers('all',this)">すべて</div>
+      <div class="chip" onclick="filterCustomers('hot',this)"><span class="chip-dot" style="background:var(--hot)"></span>ホット</div>
+      <div class="chip" onclick="filterCustomers('warm',this)"><span class="chip-dot" style="background:var(--warm)"></span>ウォーム</div>
+      <div class="chip" onclick="filterCustomers('cool',this)"><span class="chip-dot" style="background:var(--cool)"></span>クール</div>
+      <div class="chip" onclick="filterCustomers('cold',this)"><span class="chip-dot" style="background:var(--cold)"></span>コールド</div>
+    </div>
+    <div id="custList"></div>
   </div>
-  <div id="customerList"></div>
 </div>
 
+<!-- HISTORY -->
 <div class="page" id="page-history">
-  <div id="historyList"></div>
+  <div class="page-scroll" id="histList"></div>
 </div>
 
+<!-- ALERTS -->
 <div class="page" id="page-alerts">
-  <div id="alertList"></div>
+  <div class="page-scroll" id="alertList"></div>
 </div>
 
+<!-- TABS -->
 <div class="tabs">
   <div class="tab active" id="tab-map" onclick="switchTab('map')">
-    <div class="tab-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="1.8"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-    </div>マップ
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg></div>マップ
   </div>
   <div class="tab" id="tab-customers" onclick="switchTab('customers')">
-    <div class="tab-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    </div>顧客
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>顧客
   </div>
   <div class="tab" id="tab-history" onclick="switchTab('history')">
-    <div class="tab-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-    </div>履歴
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>履歴
   </div>
   <div class="tab" id="tab-alerts" onclick="switchTab('alerts')">
-    <div class="tab-icon-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-    </div>アラート
+    <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>アラート
   </div>
 </div>
 
-<!-- 顧客モーダル -->
-<div class="modal-overlay" id="modalCustomer">
+<!-- RIPPLE -->
+<div class="ripple" id="ripple"></div>
+<!-- CSV input -->
+<input type="file" id="csvInput" accept=".csv" style="display:none" onchange="importCSV(event)">
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CUSTOMER MODAL -->
+<div class="overlay" id="custOverlay">
   <div class="modal">
-    <div class="modal-title" id="modalCustomerTitle">顧客を追加</div>
-    <div class="form-group"><label>氏名 *</label><input type="text" id="f_name" placeholder="山田 太郎"></div>
-    <div class="form-group"><label>電話番号</label><input type="tel" id="f_phone" placeholder="090-0000-0000"></div>
-    <div class="form-group"><label>ステータス</label>
-      <select id="f_status">
+    <div class="modal-title" id="custModalTitle">顧客を追加</div>
+    <div class="form-group"><label class="form-label">氏名 *</label><input class="form-input" id="f_name" placeholder="山田 太郎" type="text"></div>
+    <div class="form-group"><label class="form-label">電話番号</label><input class="form-input" id="f_phone" placeholder="090-0000-0000" type="tel"></div>
+    <div class="form-group"><label class="form-label">ステータス</label>
+      <select class="form-input" id="f_status">
         <option value="hot">🔥 ホット</option><option value="warm">♨ ウォーム</option>
         <option value="cool">💧 クール</option><option value="cold">❄ コールド</option>
       </select>
     </div>
-    <div class="form-group"><label>住所</label><input type="text" id="f_address" placeholder="東京都渋谷区1-1-1"></div>
-    <div class="form-group"><label>物件ニーズ</label><input type="text" id="f_needs" placeholder="3LDK 予算5000万"></div>
-    <div class="form-group"><label>次回訪問予定</label><input type="date" id="f_nextVisit"></div>
-    <div class="form-group"><label>メモ</label><textarea id="f_memo"></textarea></div>
-    <div id="firstHistorySection" style="display:none;">
-      <div style="border-top:2px solid var(--border);margin:16px 0 14px;padding-top:14px;">
-        <div style="font-size:14px;font-weight:700;margin-bottom:12px;">初回営業履歴（任意）</div>
-        <div class="form-group"><label>タイプ</label>
-          <select id="f_h_type">
-            <option value="visit">🚗 訪問</option><option value="call">📞 電話</option>
-            <option value="preview">🏠 内見</option><option value="contract">📝 契約</option>
-            <option value="dm">✉️ DM</option><option value="other">💬 その他</option>
-          </select>
-        </div>
-        <div class="form-group"><label>日付</label><input type="date" id="f_h_date"></div>
-        <div class="form-group"><label>時刻</label><input type="time" id="f_h_time"></div>
-        <div class="form-group"><label>営業メモ</label><textarea id="f_h_note" placeholder="商談内容など"></textarea></div>
+    <div class="form-group"><label class="form-label">住所</label><input class="form-input" id="f_address" placeholder="東京都渋谷区1-1-1" type="text"></div>
+    <div class="form-group"><label class="form-label">物件ニーズ</label><input class="form-input" id="f_needs" placeholder="3LDK 予算5000万" type="text"></div>
+    <div class="form-group"><label class="form-label">次回訪問予定</label><input class="form-input" id="f_next" type="date"></div>
+    <div class="form-group"><label class="form-label">メモ</label><textarea class="form-input" id="f_memo" placeholder="自由入力"></textarea></div>
+    <!-- 初回履歴（新規のみ表示） -->
+    <div id="firstHistSection" class="form-section">
+      <div class="form-section-title">📝 初回営業履歴（任意）</div>
+      <div class="form-group"><label class="form-label">タイプ</label>
+        <select class="form-input" id="fh_type">
+          <option value="visit">🚗 訪問</option><option value="call">📞 電話</option>
+          <option value="preview">🏠 内見</option><option value="contract">📝 契約</option>
+          <option value="dm">✉️ DM</option><option value="other">💬 その他</option>
+        </select>
       </div>
+      <div class="form-group"><label class="form-label">日付</label><input class="form-input" id="fh_date" type="date"></div>
+      <div class="form-group"><label class="form-label">時刻</label><input class="form-input" id="fh_time" type="time"></div>
+      <div class="form-group"><label class="form-label">メモ</label><textarea class="form-input" id="fh_note" placeholder="商談内容など"></textarea></div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('modalCustomer')">キャンセル</button>
+      <button class="btn btn-cancel" onclick="closeOverlay('custOverlay')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveCustomer()">保存する</button>
     </div>
   </div>
 </div>
 
-<!-- 履歴モーダル -->
-<div class="modal-overlay" id="modalHistory">
+<!-- HISTORY MODAL -->
+<div class="overlay" id="histOverlay">
   <div class="modal">
-    <div class="modal-title" id="modalHistoryTitle">営業履歴を記録</div>
-    <div class="form-group"><label>顧客 *</label><select id="h_customer"></select></div>
-    <div class="form-group"><label>タイプ</label>
-      <select id="h_type">
+    <div class="modal-title" id="histModalTitle">営業履歴を記録</div>
+    <div class="form-group"><label class="form-label">顧客 *</label><select class="form-input" id="h_customer"></select></div>
+    <div class="form-group"><label class="form-label">タイプ</label>
+      <select class="form-input" id="h_type">
         <option value="visit">🚗 訪問</option><option value="call">📞 電話</option>
         <option value="preview">🏠 内見</option><option value="contract">📝 契約</option>
         <option value="dm">✉️ DM</option><option value="other">💬 その他</option>
       </select>
     </div>
-    <div class="form-group"><label>日付 *</label><input type="date" id="h_date"></div>
-    <div class="form-group"><label>時刻</label><input type="time" id="h_time"></div>
-    <div class="form-group"><label>営業メモ</label><textarea id="h_note" placeholder="商談内容など"></textarea></div>
-    <div class="form-group"><label>ステータス更新</label>
-      <select id="h_status">
-        <option value="">変更なし</option><option value="hot">→ 🔥 ホット</option>
-        <option value="warm">→ ♨ ウォーム</option><option value="cool">→ 💧 クール</option>
-        <option value="cold">→ ❄ コールド</option>
+    <div class="form-group"><label class="form-label">日付 *</label><input class="form-input" id="h_date" type="date"></div>
+    <div class="form-group"><label class="form-label">時刻</label><input class="form-input" id="h_time" type="time"></div>
+    <div class="form-group"><label class="form-label">営業メモ</label><textarea class="form-input" id="h_note" placeholder="商談内容など"></textarea></div>
+    <div class="form-group"><label class="form-label">ステータス更新</label>
+      <select class="form-input" id="h_status">
+        <option value="">変更なし</option><option value="hot">→ ホット</option>
+        <option value="warm">→ ウォーム</option><option value="cool">→ クール</option><option value="cold">→ コールド</option>
       </select>
     </div>
-    <div class="form-group"><label>次回訪問予定</label><input type="date" id="h_nextVisit"></div>
+    <div class="form-group"><label class="form-label">次回訪問予定</label><input class="form-input" id="h_next" type="date"></div>
     <div class="btn-row">
-      <button class="btn btn-cancel" onclick="closeModal('modalHistory')">キャンセル</button>
+      <button class="btn btn-cancel" onclick="closeOverlay('histOverlay')">キャンセル</button>
       <button class="btn btn-primary" id="histSaveBtn" onclick="saveHistory()">記録する</button>
     </div>
   </div>
 </div>
 
-<!-- 顧客詳細 -->
-<div class="detail-panel" id="detailPanel">
-  <div class="detail-header">
+<!-- DETAIL -->
+<div class="detail" id="detail">
+  <div class="detail-head">
     <button class="detail-back" onclick="closeDetail()">&#8249;</button>
     <span class="detail-name" id="detailName"></span>
     <span id="detailBadge"></span>
@@ -372,819 +364,704 @@
   <div class="detail-body">
     <div id="detailInfo"></div>
     <div class="action-btns">
-      <button class="action-btn primary" onclick="openRecordHistory(currentDetailId)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>履歴を記録
+      <button class="action-btn primary" onclick="openHistoryModal(state.detailId)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>履歴記録
       </button>
-      <button class="action-btn green" id="detailCallBtn" style="display:none" onclick="callCurrentCustomer()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.46 16.92z"/></svg>電話する
+      <button class="action-btn green" id="callBtn" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>電話
       </button>
-      <button class="action-btn neutral" onclick="editCurrentCustomer()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>編集
+      <button class="action-btn" onclick="editCustomer()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>編集
       </button>
-      <button class="action-btn neutral" id="detailCalBtn" style="display:none">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>カレンダー
+      <button class="action-btn" id="calBtn" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>カレンダー
       </button>
-      <button class="action-btn neutral" id="detailMapBtn" style="display:none">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>地図
+      <button class="action-btn" id="mapBtn" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>地図
       </button>
-      <button class="action-btn danger" onclick="deleteCurrentCustomer()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>削除
+      <button class="action-btn danger" onclick="deleteCustomer()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>削除
       </button>
     </div>
-    <div class="sec-title">営業履歴</div>
-    <div id="detailHistoryList"></div>
+    <div class="section-title">営業履歴</div>
+    <div id="detailHistList"></div>
   </div>
 </div>
 
-<!-- Firebase -->
+<!-- Firebase SDK -->
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-const firebaseConfig = {
-  apiKey: "AIzaSyANgJ4f6elnTMWW4sCbq4buAJ8aEfq8VW8",
-  authDomain: "sales-crm-5940b.firebaseapp.com",
-  projectId: "sales-crm-5940b",
-  storageBucket: "sales-crm-5940b.firebasestorage.app",
-  messagingSenderId: "996328269551",
-  appId: "1:996328269551:web:3f841199f689cb63139d1a"
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,collection,doc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const cfg={
+  apiKey:"AIzaSyANgJ4f6elnTMWW4sCbq4buAJ8aEfq8VW8",
+  authDomain:"sales-crm-5940b.firebaseapp.com",
+  projectId:"sales-crm-5940b",
+  storageBucket:"sales-crm-5940b.firebasestorage.app",
+  messagingSenderId:"996328269551",
+  appId:"1:996328269551:web:3f841199f689cb63139d1a"
 };
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-window._db = db; window._col = collection; window._doc = doc;
-window._addDoc = addDoc; window._updateDoc = updateDoc; window._deleteDoc = deleteDoc;
-window._onSnapshot = onSnapshot; window._query = query; window._orderBy = orderBy;
-window._firebaseReady = true;
-// 通常scriptの読み込み完了後に同期開始
-window.dispatchEvent(new Event('firebaseReady'));
+const app=initializeApp(cfg);
+const db=getFirestore(app);
+window.$db=db;window.$col=collection;window.$doc=doc;
+window.$add=addDoc;window.$upd=updateDoc;window.$del=deleteDoc;
+window.$snap=onSnapshot;window.$q=query;window.$ord=orderBy;
+window.dispatchEvent(new Event('fbReady'));
 </script>
 
 <script>
-var customers = [], histories = [];
-var currentFilter = 'all', mapFilter = 'all';
-var currentDetailId = null, editingId = null, pendingLatLng = null;
-var googleMap = null, mapMarkers = [], mapInfoWindows = [];
-var mapScriptLoaded = false, currentTab = 'map';
-var allBubblesOpen = false;
-var deletingCustomerIds = {}; // 削除中のIDを記録してマーカー再描画を防ぐ
-
-var statusLabel = { hot:'🔥 ホット', warm:'♨ ウォーム', cool:'💧 クール', cold:'❄ コールド' };
-var typeIcon = { visit:'🚗', call:'📞', preview:'🏠', contract:'📝', dm:'✉️', other:'💬' };
-var typeLabel = { visit:'🚗 訪問', call:'📞 電話', preview:'🏠 内見', contract:'📝 契約', dm:'✉️ DM', other:'💬 その他' };
-function dotSvg(color) {
-  return '<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="'+color+'"/></svg>';
-}
-var dotColorSvg = { hot: dotSvg('#ef4444'), warm: dotSvg('#f97316'), cool: dotSvg('#3b82f6'), cold: dotSvg('#6b7280') };
-var markerColor = { hot:'#ef4444', warm:'#f97316', cool:'#3b82f6', cold:'#6b7280' };
-
-function getApiKey() { return 'AIzaSyDTE8gMpxRJo19XZX-y8rmDpNtW4hyz0go'; }
-function getDayDiff(d) {
-  if (!d) return null;
-  var today = new Date(); today.setHours(0,0,0,0);
-  return Math.floor((new Date(d+'T00:00:00') - today) / 86400000);
-}
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 2500);
-}
-function setSyncStatus(online) {
-  document.getElementById('syncDot').className = 'sync-dot'+(online?'':' offline');
-  document.getElementById('syncText').textContent = online ? '同期済み' : 'オフライン';
-}
-
-// FIRESTORE
-window.startFirestoreSync = function() {
-  if (!window._firebaseReady) { setTimeout(window.startFirestoreSync, 200); return; }
-  var db = window._db;
-  window._onSnapshot(window._query(window._col(db,'customers'),window._orderBy('createdAt','desc')), function(snap) {
-    var prevIds = customers.map(function(c){ return c.id; });
-    customers = []; snap.forEach(function(d){ customers.push(Object.assign({id:d.id},d.data())); });
-    var newIds = customers.map(function(c){ return c.id; });
-    // 削除された顧客のマーカーを即座に除去
-    prevIds.forEach(function(id){
-      if (newIds.indexOf(id) === -1) {
-        mapMarkers = mapMarkers.filter(function(m){
-          if (m.customerId === id) { m.marker.setMap(null); m.infoWin.close(); return false; }
-          return true;
-        });
-        delete deletingCustomerIds[id];
-      }
-    });
-    setSyncStatus(true); renderCurrentTab();
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }, function(){ setSyncStatus(false); document.getElementById('loadingOverlay').style.display = 'none'; });
-  window._onSnapshot(window._query(window._col(db,'histories'),window._orderBy('timestamp','desc')), function(snap) {
-    histories = []; snap.forEach(function(d){ histories.push(Object.assign({id:d.id},d.data())); });
-    renderCurrentTab();
-  });
+'use strict';
+/* ===== STATE ===== */
+const state={
+  customers:[],histories:[],
+  custFilter:'all',mapFilter:'all',
+  tab:'map',detailId:null,
+  editCustId:null,editHistId:null,
+  allBubbles:false,
+  map:null,markers:{},infoWindows:{},
+  myLocMarker:null,myLocRing:null,
+  mapLoaded:false,
+  deletingIds:{}
 };
-function addCustomerToDb(data) { data.createdAt = Date.now(); return window._addDoc(window._col(window._db,'customers'),data); }
-function updateCustomerInDb(id,data) { return window._updateDoc(window._doc(window._db,'customers',id),data); }
-function deleteCustomerFromDb(id) { return window._deleteDoc(window._doc(window._db,'customers',id)); }
-function addHistoryToDb(data) { data.timestamp = Date.now(); return window._addDoc(window._col(window._db,'histories'),data); }
-function deleteHistoryFromDb(id) { return window._deleteDoc(window._doc(window._db,'histories',id)); }
 
-function renderCurrentTab() {
-  if (currentTab==='customers') renderCustomers();
-  else if (currentTab==='history') renderHistories();
-  else if (currentTab==='alerts') renderAlerts();
-  else if (currentTab==='map') { renderPseudoPins(); if(googleMap) updateMapMarkers(); }
-  if (currentDetailId) { var c=customers.find(function(x){return x.id===currentDetailId;}); if(c) renderDetailHistory(currentDetailId); }
+/* ===== CONSTANTS ===== */
+const MAPS_KEY='AIzaSyDTE8gMpxRJo19XZX-y8rmDpNtW4hyz0go';
+const STATUS_COLOR={hot:'#ef4444',warm:'#f97316',cool:'#3b82f6',cold:'#6b7280'};
+const STATUS_LABEL={hot:'🔥 ホット',warm:'♨ ウォーム',cool:'💧 クール',cold:'❄ コールド'};
+const TYPE_LABEL={visit:'訪問',call:'電話',preview:'内見',contract:'契約',dm:'DM',other:'その他'};
+const TYPE_COLOR={visit:'#3b82f6',call:'#22c55e',preview:'#f59e0b',contract:'#8b5cf6',dm:'#06b6d4',other:'#64748b'};
+const TYPE_SVG={
+  visit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8l4 2v5h-4"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+  call:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  preview:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  contract:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+  dm:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  other:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+};
+
+/* ===== UTILS ===== */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+function dayDiff(d){if(!d)return null;const t=new Date();t.setHours(0,0,0,0);return Math.floor((new Date(d+'T00:00:00')-t)/86400000)}
+function setSyncStatus(ok){document.getElementById('syncDot').className='sync-dot'+(ok?'':' off');document.getElementById('syncText').textContent=ok?'同期済み':'オフライン'}
+function closeOverlay(id){document.getElementById(id).classList.remove('open')}
+function svgIcon(type){return TYPE_SVG[type]||TYPE_SVG.other}
+
+/* ===== FIREBASE ===== */
+function addC(data){data.createdAt=Date.now();return window.$add(window.$col(window.$db,'customers'),data)}
+function updC(id,data){return window.$upd(window.$doc(window.$db,'customers',id),data)}
+function delC(id){return window.$del(window.$doc(window.$db,'customers',id))}
+function addH(data){data.timestamp=Date.now();return window.$add(window.$col(window.$db,'histories'),data)}
+function updH(id,data){return window.$upd(window.$doc(window.$db,'histories',id),data)}
+function delH(id){return window.$del(window.$doc(window.$db,'histories',id))}
+
+function startSync(){
+  if(!window.$db)return;
+  // customers
+  window.$snap(window.$q(window.$col(window.$db,'customers'),window.$ord('createdAt','desc')),snap=>{
+    const prev=state.customers.map(c=>c.id);
+    state.customers=[];
+    snap.forEach(d=>state.customers.push({id:d.id,...d.data()}));
+    const curr=state.customers.map(c=>c.id);
+    // remove deleted markers
+    prev.filter(id=>!curr.includes(id)).forEach(id=>{
+      if(state.markers[id]){state.markers[id].setMap(null);delete state.markers[id]}
+      if(state.infoWindows[id]){state.infoWindows[id].close();delete state.infoWindows[id]}
+      delete state.deletingIds[id];
+    });
+    setSyncStatus(true);
+    renderAll();
+    document.getElementById('loading').style.display='none';
+  },()=>{setSyncStatus(false);document.getElementById('loading').style.display='none'});
+  // histories
+  window.$snap(window.$q(window.$col(window.$db,'histories'),window.$ord('timestamp','desc')),snap=>{
+    state.histories=[];
+    snap.forEach(d=>state.histories.push({id:d.id,...d.data()}));
+    renderAll();
+  });
 }
 
-// TAB
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+window.addEventListener('fbReady',startSync);
+
+/* ===== RENDER ALL ===== */
+function renderAll(){
+  if(state.tab==='customers')renderCustomers();
+  else if(state.tab==='history')renderHistories();
+  else if(state.tab==='alerts')renderAlerts();
+  if(state.map)updateMarkers();
+  if(state.detailId)renderDetailHistory(state.detailId);
+  renderListPanel();
+}
+
+/* ===== TAB ===== */
+function switchTab(tab){
+  state.tab=tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+tab).classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
-  if (tab==='map') renderMapTab();
-  else if (tab==='customers') renderCustomers();
-  else if (tab==='history') renderHistories();
-  else if (tab==='alerts') renderAlerts();
+  if(tab==='customers')renderCustomers();
+  else if(tab==='history')renderHistories();
+  else if(tab==='alerts')renderAlerts();
 }
 
-// MAP
-function renderMapTab() {
-  var key = getApiKey();
-  document.getElementById('mapSetupPanel').style.display = 'none';
-  document.getElementById('mapRealPanel').style.display = 'block';
-  if (!mapScriptLoaded) loadMapScript(key);
-  else if (googleMap) { updateMapMarkers(); centerToCurrentLocation(); }
-  renderPseudoPins();
-}
-function saveApiKey() {
-  var key = document.getElementById('apiKeyInput').value.trim();
-  if (!key||!key.startsWith('AIza')) { alert('正しいAPIキーを入力してください'); return; }
-  localStorage.setItem('gmaps_api_key', key); renderMapTab();
-}
-function loadMapScript(key) {
-  mapScriptLoaded = true;
-  var el = document.getElementById('mapEl');
-  el.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#e8eaf0;flex-direction:column;gap:12px;color:#64748b;';
-  el.innerHTML = '<div style="font-size:40px;">🗺️</div><div>地図を読み込み中...</div>';
-  window._initGoogleMap = function() {
-    var el2 = document.getElementById('mapEl');
-    el2.style.cssText = 'width:100%;height:100%;'; el2.innerHTML = '';
-    googleMap = new google.maps.Map(el2, {
-      center:{lat:35.6812,lng:139.7671}, zoom:17,
-      mapTypeControl:false, streetViewControl:false, fullscreenControl:false, gestureHandling:'greedy'
-    });
-    // PC long press
-    var pressTimer;
-    googleMap.addListener('mousedown', function(e){ pressTimer = setTimeout(function(){ addCustomerAtLatLng(e.latLng.lat(),e.latLng.lng()); },700); });
-    googleMap.addListener('mouseup', function(){ clearTimeout(pressTimer); });
-    googleMap.addListener('dragstart', function(){ clearTimeout(pressTimer); });
-
-    // ===== スマホタッチ（ピンチ完全対策版）=====
-    var mapDiv = document.getElementById('mapEl');
-    var ripple = document.getElementById('pressRipple');
-
-    // ======= スマホ長押し（完全解決版）=======
-    // Google Maps の longpress イベントを使用
-    // Google Mapsが内部でピンチ/ダブルタップを処理し、
-    // 純粋な長押しのみ longpress として発火する
-    googleMap.addListener('longpress', function(e) {
-      ripple.style.left = (window.innerWidth / 2) + 'px';
-      ripple.style.top = (window.innerHeight / 2) + 'px';
-      ripple.classList.add('active');
-      setTimeout(function(){ ripple.classList.remove('active'); }, 300);
-      addCustomerAtLatLng(e.latLng.lat(), e.latLng.lng());
-    });
-    updateMapMarkers(); centerToCurrentLocation();
-  };
-  var s=document.createElement('script');
-  s.src='https://maps.googleapis.com/maps/api/js?key='+key+'&language=ja&region=JP&callback=_initGoogleMap'; s.async=true;
-  s.onerror=function(){ mapScriptLoaded=false; document.getElementById('mapEl').innerHTML='<div style="padding:30px;text-align:center;"><div style="font-size:40px;">❌</div><div style="color:#ef4444;font-weight:600;margin-top:8px;">APIキーエラー</div><button onclick="localStorage.removeItem(\'gmaps_api_key\');mapScriptLoaded=false;googleMap=null;renderMapTab();" style="margin-top:12px;padding:10px 20px;background:#2563eb;color:#fff;border:none;border-radius:10px;cursor:pointer;">再設定</button></div>'; };
-  document.head.appendChild(s);
-}
-
-// MAP FILTER
-function setMapFilter(f, el) {
-  mapFilter = f;
-  document.querySelectorAll('.map-chip').forEach(function(c){c.classList.remove('active');});
-  el.classList.add('active');
-  updateMapMarkers();
-  renderMapListBody();
-}
-
-// MARKERS
-function updateMapMarkers() {
-  if (!googleMap) return;
-  var currentIds = customers.map(function(c){ return c.id; });
-  // 存在しない顧客のマーカーを削除
-  mapMarkers = mapMarkers.filter(function(m){
-    if (currentIds.indexOf(m.customerId) === -1 || deletingCustomerIds[m.customerId]) {
-      m.marker.setMap(null);
-      m.infoWin.close();
-      return false;
-    }
-    return true;
+/* ===== MAP ===== */
+window._initMap=function(){
+  state.map=new google.maps.Map(document.getElementById('mapEl'),{
+    center:{lat:35.6812,lng:139.7671},zoom:17,
+    mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
+    gestureHandling:'greedy',zoomControl:false
   });
-  // 既にマーカーがある顧客のIDリスト
-  var existingMarkerIds = mapMarkers.map(function(m){ return m.customerId; });
-  // フィルター対象の顧客のみ追加
-  var filtered = customers.filter(function(c){
-    return (mapFilter==='all'||c.status===mapFilter) && !deletingCustomerIds[c.id];
+  // PC long press
+  let pt;
+  state.map.addListener('mousedown',e=>{pt=setTimeout(()=>addAtLatLng(e.latLng.lat(),e.latLng.lng()),500)});
+  state.map.addListener('mouseup',()=>clearTimeout(pt));
+  state.map.addListener('dragstart',()=>clearTimeout(pt));
+  // Smartphone: Google Maps longpress event (pinch-safe)
+  state.map.addListener('longpress',e=>{
+    showRipple(window.innerWidth/2,window.innerHeight/2);
+    addAtLatLng(e.latLng.lat(),e.latLng.lng());
   });
-  filtered.forEach(function(c){
-    if (existingMarkerIds.indexOf(c.id) !== -1) return; // 既にマーカーあり
-    if (c.lat!=null&&c.lng!=null) addMarker(c);
-    else if (c.address) geocodeAndAddMarker(c);
-  });
-  // フィルターで非表示になったマーカーを隠す
-  mapMarkers.forEach(function(m){
-    var c = customers.find(function(x){ return x.id===m.customerId; });
-    if (!c) return;
-    var show = (mapFilter==='all'||c.status===mapFilter) && !deletingCustomerIds[c.id];
-    m.marker.setVisible(show);
-  });
-  renderMapListBody();
-}
-function geocodeAndAddMarker(c) {
-  new google.maps.Geocoder().geocode({address:c.address,region:'JP'}, function(res,status){
-    if (status==='OK'&&res[0]) {
-      var lat=res[0].geometry.location.lat(), lng=res[0].geometry.location.lng();
-      updateCustomerInDb(c.id,{lat:lat,lng:lng});
-      addMarker(Object.assign({},c,{lat:lat,lng:lng}));
-    }
-  });
-}
-function buildInfoContent(c) {
-  var cHist = histories.filter(function(h){return h.customerId===c.id;});
-  cHist.sort(function(a,b){return b.timestamp-a.timestamp;});
-  var latest = cHist.length ? cHist[0] : null;
-  var sColors={hot:'#ef4444',warm:'#f97316',cool:'#3b82f6',cold:'#6b7280'};
-  var sColor = sColors[c.status]||'#2563eb';
-  var html = '<div style="font-family:-apple-system,sans-serif;padding:4px 2px;min-width:180px;max-width:240px;">';
-  html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">';
-  html += '<span style="font-weight:700;font-size:14px;color:#1e293b;">'+c.name+'</span>';
-  html += '<span style="font-size:10px;padding:1px 6px;border-radius:10px;background:'+sColor+'20;color:'+sColor+';font-weight:600;">'+statusLabel[c.status]+'</span>';
-  html += '</div>';
-  if (c.needs) html += '<div style="font-size:12px;color:#475569;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'+c.needs+'</div>';
-  if (c.memo) html += '<div style="font-size:12px;color:#475569;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>'+c.memo+'</div>';
-  if (latest) {
-    html += '<div style="background:#f1f5f9;border-radius:8px;padding:7px 9px;">';
-    html += '<div style="font-size:11px;color:#64748b;margin-bottom:3px;">📋 直近の履歴</div>';
-    html += '<div style="font-size:13px;font-weight:600;color:#1e293b;">'+(typeIcon[latest.type]||'💬')+' '+(typeLabel[latest.type]||'')+'</div>';
-    html += '<div style="font-size:11px;color:#64748b;margin-top:2px;">'+latest.date+(latest.time?' '+latest.time:'')+'</div>';
-    if (latest.note) html += '<div style="font-size:12px;color:#334155;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">'+latest.note+'</div>';
-    html += '</div>';
-  } else {
-    html += '<div style="background:#f1f5f9;border-radius:8px;padding:7px 9px;font-size:12px;color:#94a3b8;">履歴なし</div>';
-  }
-  html += '</div>';
-  return html;
-}
-function makePinIcon(color, emoji) {
-  var svg = [
-    '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">',
-    '<ellipse cx="14" cy="34" rx="5" ry="2" fill="rgba(0,0,0,0.12)"/>',
-    '<path d="M14 1C7.4 1 2 6.4 2 13c0 8 12 22 12 22s12-14 12-22C26 6.4 20.6 1 14 1z" fill="' + color + '"/>',
-    '<path d="M14 3C8.5 3 4 7.5 4 13c0 1 .2 2 .5 3C5.8 10 9.5 6 14 6s8.2 4 9.5 10c.3-1 .5-2 .5-3C24 7.5 19.5 3 14 3z" fill="rgba(255,255,255,0.22)"/>',
-    '<circle cx="14" cy="13" r="7" fill="white"/>',
-    '<text x="14" y="17.5" text-anchor="middle" font-size="9" font-family="sans-serif">' + emoji + '</text>',
-    '</svg>'
-  ].join('');
-  return {
-    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-    scaledSize: new google.maps.Size(28, 36),
-    anchor: new google.maps.Point(14, 36)
-  };
-}
-
-// 履歴タイプ別SVGアイコン（統一デザイン）
-var typeIconSvg = {
-  visit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8l4 2v5h-4"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
-  call:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-  preview: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  contract: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
-  dm:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
-  other: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+  updateMarkers();
+  goToCurrentLocation();
 };
-var typeIconBg = { visit:'#3b82f6', call:'#22c55e', preview:'#f59e0b', contract:'#8b5cf6', dm:'#06b6d4', other:'#64748b' };
-var statusEmoji = { hot:'🔥', warm:'♨', cool:'💧', cold:'❄' };
 
-function addMarker(c) {
-  var color = markerColor[c.status] || '#2563eb';
-  var emoji = statusEmoji[c.status] || '📍';
-  var marker = new google.maps.Marker({
-    position:{lat:c.lat,lng:c.lng}, map:googleMap, title:c.name,
-    icon: makePinIcon(color, emoji),
-    zIndex: ({hot:4,warm:3,cool:2,cold:1}[c.status]||1)
-  });
-  var infoWin = new google.maps.InfoWindow({content:buildInfoContent(c)});
-  var infoOpen = false;
+(function loadMaps(){
+  const s=document.createElement('script');
+  s.src=`https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&language=ja&region=JP&callback=_initMap`;
+  s.async=true;document.head.appendChild(s);
+})();
 
-  // PC: ホバーで吹き出し表示（クリックと競合しないよう管理）
-  marker.addListener('mouseover', function(){
-    infoWin.setContent(buildInfoContent(c));
-    infoWin.open(googleMap, marker);
-    infoOpen = true;
-  });
-  marker.addListener('mouseout', function(){
-    if (!allBubblesOpen) { infoWin.close(); infoOpen = false; }
-  });
-
-  // クリック → 詳細画面を開く（シングルで即開く）
-  marker.addListener('click', function() {
-    infoWin.close();
-    infoOpen = false;
-    openDetail(c.id);
-  });
-
-  mapMarkers.push({marker:marker, infoWin:infoWin, customerId:c.id});
-  mapInfoWindows.push(infoWin);
+function showRipple(x,y){
+  const r=document.getElementById('ripple');
+  r.style.left=x+'px';r.style.top=y+'px';
+  r.classList.add('show');
+  setTimeout(()=>r.classList.remove('show'),600);
 }
 
-// 全吹き出し表示/非表示
-function toggleAllBubbles() {
-  allBubblesOpen = !allBubblesOpen;
-  mapMarkers.forEach(function(m){
-    if (allBubblesOpen) m.infoWin.open(googleMap, m.marker);
-    else m.infoWin.close();
-  });
-  showToast(allBubblesOpen ? '💬 全吹き出しを表示' : '💬 全吹き出しを閉じました');
+function makePinSVG(color){
+  return encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36"><ellipse cx="14" cy="34" rx="5" ry="2" fill="rgba(0,0,0,0.15)"/><path d="M14 1C7.4 1 2 6.4 2 13c0 8 12 22 12 22s12-14 12-22C26 6.4 20.6 1 14 1z" fill="${color}"/><circle cx="14" cy="13" r="7" fill="white"/></svg>`);
 }
 
-// 現在地
-function centerToCurrentLocation() {
-  if (!navigator.geolocation||!googleMap) return;
-  navigator.geolocation.getCurrentPosition(function(p){
-    var latlng={lat:p.coords.latitude,lng:p.coords.longitude};
-    googleMap.panTo(latlng);
-    if (window._myLocationMarker) window._myLocationMarker.setMap(null);
-    if (window._myLocationRing) window._myLocationRing.setMap(null);
-    window._myLocationRing = new google.maps.Marker({position:latlng,map:googleMap,icon:{path:google.maps.SymbolPath.CIRCLE,scale:22,fillColor:'#4285F4',fillOpacity:0.18,strokeColor:'#4285F4',strokeWeight:2},zIndex:998});
-    window._myLocationMarker = new google.maps.Marker({position:latlng,map:googleMap,title:'現在地',icon:{path:google.maps.SymbolPath.CIRCLE,scale:11,fillColor:'#4285F4',fillOpacity:1,strokeColor:'#ffffff',strokeWeight:3},zIndex:1000});
+function addMarker(c){
+  if(state.deletingIds[c.id])return;
+  const marker=new google.maps.Marker({
+    position:{lat:c.lat,lng:c.lng},map:state.map,title:c.name,
+    icon:{url:`data:image/svg+xml,${makePinSVG(STATUS_COLOR[c.status]||'#2563eb')}`,scaledSize:new google.maps.Size(28,36),anchor:new google.maps.Point(14,36)},
+    zIndex:{hot:4,warm:3,cool:2,cold:1}[c.status]||1
+  });
+  const hist=state.histories.filter(h=>h.customerId===c.id).sort((a,b)=>b.timestamp-a.timestamp);
+  const latest=hist[0];
+  const sc=STATUS_COLOR[c.status]||'#2563eb';
+  const content=`<div style="font-family:-apple-system,sans-serif;padding:4px;min-width:180px;max-width:230px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="font-weight:700;font-size:14px;color:#1e293b;">${c.name}</span>
+      <span style="font-size:10px;padding:1px 7px;border-radius:999px;background:${sc}20;color:${sc};font-weight:700;">${STATUS_LABEL[c.status]||''}</span>
+    </div>
+    ${c.needs?`<div style="font-size:12px;color:#475569;margin-bottom:4px;">${c.needs}</div>`:''}
+    ${c.memo?`<div style="font-size:12px;color:#475569;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${c.memo}</div>`:''}
+    <div style="background:#f1f5f9;border-radius:8px;padding:7px 9px;">
+      <div style="font-size:11px;color:#64748b;margin-bottom:3px;">直近の履歴</div>
+      ${latest?`<div style="font-size:13px;font-weight:600;color:#1e293b;">${TYPE_LABEL[latest.type]||''}</div>
+      <div style="font-size:11px;color:#64748b;margin-top:2px;">${latest.date}${latest.time?' '+latest.time:''}</div>
+      ${latest.note?`<div style="font-size:12px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;">${latest.note}</div>`:''}`
+      :'<div style="font-size:12px;color:#94a3b8;">履歴なし</div>'}
+    </div>
+  </div>`;
+  const iw=new google.maps.InfoWindow({content});
+  // PC hover
+  marker.addListener('mouseover',()=>iw.open(state.map,marker));
+  marker.addListener('mouseout',()=>{if(!state.allBubbles)iw.close()});
+  // Click → open detail
+  marker.addListener('click',()=>openDetail(c.id));
+  state.markers[c.id]=marker;
+  state.infoWindows[c.id]=iw;
+  if(state.allBubbles)iw.open(state.map,marker);
+}
+
+function geocodeAndAdd(c){
+  if(!google?.maps?.Geocoder)return;
+  new google.maps.Geocoder().geocode({address:c.address,region:'JP'},(res,status)=>{
+    if(status==='OK'&&res[0]){
+      const lat=res[0].geometry.location.lat(),lng=res[0].geometry.location.lng();
+      updC(c.id,{lat,lng});
+      addMarker({...c,lat,lng});
+    }
   });
 }
-function addPinAtCurrentLocation() {
-  if (!navigator.geolocation) { alert('位置情報が使えません'); return; }
-  showToast('現在地を取得中...');
-  navigator.geolocation.getCurrentPosition(function(p){ addCustomerAtLatLng(p.coords.latitude,p.coords.longitude); }, function(){ showToast('位置情報の取得に失敗しました'); });
-}
-function addCustomerAtLatLng(lat, lng) {
-  pendingLatLng = {lat: lat, lng: lng};
-  showToast('住所を取得中...');
-  if (window.google && window.google.maps) {
-    var geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ location: {lat: lat, lng: lng} }, function(res, status) {
-      var addr = '';
-      if (status === 'OK' && res && res.length > 0) {
-        for (var i = 0; i < res.length; i++) {
-          var fa = res[i].formatted_address || '';
-          // 「日本、〒xxx-xxxx 住所」→ 住所だけ抽出
-          var cleaned = fa
-            .replace(/^日本[、,，]\s*/, '')
-            .replace(/^〒[\d\-]+\s*/, '')
-            .replace(/^日本\s*/, '')
-            .trim();
-          if (cleaned && cleaned.length > 3) {
-            addr = cleaned;
-            break;
-          }
-        }
+
+function updateMarkers(){
+  if(!state.map)return;
+  const existIds=Object.keys(state.markers);
+  const currIds=state.customers.map(c=>c.id);
+  // remove stale
+  existIds.filter(id=>!currIds.includes(id)||state.deletingIds[id]).forEach(id=>{
+    state.markers[id]?.setMap(null);delete state.markers[id];
+    state.infoWindows[id]?.close();delete state.infoWindows[id];
+  });
+  // add/update
+  state.customers.filter(c=>(state.mapFilter==='all'||c.status===state.mapFilter)&&!state.deletingIds[c.id]).forEach(c=>{
+    if(state.markers[c.id]){
+      // update icon if status changed
+      state.markers[c.id].setIcon({url:`data:image/svg+xml,${makePinSVG(STATUS_COLOR[c.status]||'#2563eb')}`,scaledSize:new google.maps.Size(28,36),anchor:new google.maps.Point(14,36)});
+      // update info window content
+      if(state.infoWindows[c.id]){
+        const hist=state.histories.filter(h=>h.customerId===c.id).sort((a,b)=>b.timestamp-a.timestamp);
+        const latest=hist[0];
+        const sc=STATUS_COLOR[c.status]||'#2563eb';
+        state.infoWindows[c.id].setContent(`<div style="font-family:-apple-system,sans-serif;padding:4px;min-width:180px;max-width:230px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:14px;color:#1e293b;">${c.name}</span>
+            <span style="font-size:10px;padding:1px 7px;border-radius:999px;background:${sc}20;color:${sc};font-weight:700;">${STATUS_LABEL[c.status]||''}</span>
+          </div>
+          ${c.needs?`<div style="font-size:12px;color:#475569;margin-bottom:4px;">${c.needs}</div>`:''}
+          <div style="background:#f1f5f9;border-radius:8px;padding:7px 9px;">
+            <div style="font-size:11px;color:#64748b;margin-bottom:3px;">直近の履歴</div>
+            ${latest?`<div style="font-size:13px;font-weight:600;">${TYPE_LABEL[latest.type]||''}</div>
+            <div style="font-size:11px;color:#64748b;">${latest.date}${latest.time?' '+latest.time:''}</div>
+            ${latest.note?`<div style="font-size:12px;margin-top:3px;">${latest.note}</div>`:''}`:'<div style="font-size:12px;color:#94a3b8;">履歴なし</div>'}
+          </div>
+        </div>`);
       }
-      openAddCustomer(addr);
-    });
-  } else {
-    openAddCustomer('');
-  }
+      return;
+    }
+    if(c.lat!=null&&c.lng!=null)addMarker(c);
+    else if(c.address)geocodeAndAdd(c);
+  });
+  // hide filtered
+  state.customers.forEach(c=>{
+    if(!state.markers[c.id])return;
+    const show=(state.mapFilter==='all'||c.status===state.mapFilter)&&!state.deletingIds[c.id];
+    state.markers[c.id].setVisible(show);
+  });
+  renderListPanel();
 }
 
-// ピン一覧パネル
-function toggleMapList() {
-  var panel = document.getElementById('mapListPanel');
-  panel.classList.toggle('open');
-  if (panel.classList.contains('open')) renderMapListBody();
+function setMapFilter(f,el){
+  state.mapFilter=f;
+  document.querySelectorAll('.map-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  updateMarkers();renderListPanel();
 }
-function renderMapListBody() {
-  var body = document.getElementById('mapListBody');
-  if (!body) return;
-  var filtered = customers.filter(function(c){ return mapFilter==='all'||c.status===mapFilter; });
-  document.getElementById('mapListTitle').textContent = 'ピン一覧（'+filtered.length+'件）';
-  if (!filtered.length) { body.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-sub);">表示するピンがありません</div>'; return; }
-  body.innerHTML = filtered.map(function(c){
-    var cHist = histories.filter(function(h){return h.customerId===c.id;});
-    var lastH = cHist.length ? cHist[0] : null;
-    return '<div class="map-list-item" onclick="focusMarker(\''+c.id+'\')">'
-      +'<div style="display:flex;align-items:center;gap:8px;">'
-      +'<span>'+(dotColorSvg[c.status]||dotSvg('#64748b'))+'</span>'
-      +'<span class="map-list-item-name">'+c.name+'</span>'
-      +'<span class="badge badge-'+c.status+'" style="margin-left:auto;">'+statusLabel[c.status]+'</span>'
-      +'</div>'
-      +(c.address?'<div class="map-list-item-sub" style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+c.address+'</div>':'')
-      +(c.needs?'<div class="map-list-item-sub" style="display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>'+c.needs+'</div>':'')
-      +(lastH?'<div class="map-list-item-sub">🕐 '+lastH.date+' '+(typeIcon[lastH.type]||'')+(lastH.note?' - '+lastH.note.slice(0,20):'')+'</div>':'')
-      +'</div>';
+
+function goToCurrentLocation(){
+  if(!navigator.geolocation||!state.map)return;
+  navigator.geolocation.getCurrentPosition(p=>{
+    const ll={lat:p.coords.latitude,lng:p.coords.longitude};
+    state.map.panTo(ll);
+    if(state.myLocMarker)state.myLocMarker.setMap(null);
+    if(state.myLocRing)state.myLocRing.setMap(null);
+    state.myLocRing=new google.maps.Marker({position:ll,map:state.map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:22,fillColor:'#4285F4',fillOpacity:.15,strokeColor:'#4285F4',strokeWeight:1.5},zIndex:998});
+    state.myLocMarker=new google.maps.Marker({position:ll,map:state.map,title:'現在地',icon:{path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:'#4285F4',fillOpacity:1,strokeColor:'#fff',strokeWeight:3},zIndex:999});
+  });
+}
+
+function toggleAllBubbles(){
+  state.allBubbles=!state.allBubbles;
+  Object.entries(state.markers).forEach(([id,m])=>{
+    if(state.allBubbles)state.infoWindows[id]?.open(state.map,m);
+    else state.infoWindows[id]?.close();
+  });
+  document.getElementById('bubbleBtn').style.background=state.allBubbles?'#f59e0b20':'';
+  toast(state.allBubbles?'全吹き出しを表示':'全吹き出しを閉じました');
+}
+
+function toggleListPanel(){
+  const p=document.getElementById('listPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open'))renderListPanel();
+}
+
+function renderListPanel(){
+  const body=document.getElementById('listPanelBody');
+  if(!body)return;
+  const arr=state.customers.filter(c=>state.mapFilter==='all'||c.status===c.status);
+  const filtered=state.customers.filter(c=>state.mapFilter==='all'||c.status===state.mapFilter);
+  document.getElementById('listPanelTitle').textContent=`ピン一覧（${filtered.length}件）`;
+  if(!filtered.length){body.innerHTML='<div class="empty"><p>該当する顧客がいません</p></div>';return;}
+  const hist=id=>state.histories.filter(h=>h.customerId===id)[0];
+  body.innerHTML=filtered.map(c=>{
+    const lh=hist(c.id);
+    const sc=STATUS_COLOR[c.status]||'#2563eb';
+    return `<div class="list-item" onclick="focusPin('${c.id}')">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="${sc}"/></svg>
+      <div class="list-item-info">
+        <div class="list-item-name">${c.name}</div>
+        ${c.address?`<div class="list-item-sub">${c.address}</div>`:''}
+        ${lh?`<div class="list-item-sub">${TYPE_LABEL[lh.type]||''} ${lh.date}${lh.note?' - '+lh.note.slice(0,15):''}</div>`:''}
+      </div>
+    </div>`;
   }).join('');
 }
-function focusMarker(customerId) {
-  var c = customers.find(function(x){return x.id===customerId;});
-  if (!c||c.lat==null) { showToast('この顧客のピンはまだ表示されていません'); return; }
-  googleMap.panTo({lat:c.lat,lng:c.lng}); googleMap.setZoom(16);
-  var m = mapMarkers.find(function(x){return x.customerId===customerId;});
-  if (m) { m.infoWin.setContent(buildInfoContent(c)); m.infoWin.open(googleMap, m.marker); }
+
+function focusPin(id){
+  const c=state.customers.find(x=>x.id===id);
+  if(!c||c.lat==null)return;
+  state.map?.panTo({lat:c.lat,lng:c.lng});
+  state.map?.setZoom(17);
+  if(state.infoWindows[id]&&state.markers[id])state.infoWindows[id].open(state.map,state.markers[id]);
 }
 
-// 疑似ピンリスト
-function renderPseudoPins() {
-  var list = document.getElementById('pseudoPinList');
-  if (!list) return;
-  var arr = customers.filter(function(c){return c.address;});
-  if (!arr.length) { list.innerHTML = '<div style="color:var(--text-sub);font-size:13px;">住所のある顧客がいません</div>'; return; }
-  list.innerHTML = arr.map(function(c){
-    return '<div class="pin-item" onclick="window.open(\'https://www.google.com/maps/search/'+encodeURIComponent(c.address)+'\',\'_blank\')">'
-      +'<span>'+(dotColorSvg[c.status]||dotSvg('#64748b'))+'</span>'
-      +'<div style="flex:1;"><div style="font-size:14px;font-weight:600;">'+c.name+'</div>'
-      +'<div style="font-size:12px;color:var(--text-sub);">'+c.address+'</div></div>'
-      +'<span style="font-size:14px;color:var(--text-sub);">›</span></div>';
-  }).join('');
+function addAtCurrentLocation(){
+  if(!navigator.geolocation){alert('位置情報が使えません');return}
+  toast('現在地を取得中...');
+  navigator.geolocation.getCurrentPosition(p=>addAtLatLng(p.coords.latitude,p.coords.longitude),()=>toast('位置情報の取得に失敗しました'));
 }
 
-// EXCEL書き出し（CSV）
-function exportCSV() {
-  // ===== シート1: 顧客一覧 =====
-  var filtered = customers.filter(function(c){ return mapFilter==='all'||c.status===mapFilter; });
-
-  // 顧客ごとの最大履歴件数を調べる
-  var maxHist = 0;
-  filtered.forEach(function(c){
-    var n = histories.filter(function(h){return h.customerId===c.id;}).length;
-    if (n > maxHist) maxHist = n;
-  });
-
-  // ヘッダー行
-  var custHeader = ['氏名','電話番号','ステータス','住所','物件ニーズ','次回訪問','メモ'];
-  for (var i=1; i<=maxHist; i++) {
-    custHeader.push('履歴'+i+'_タイプ', '履歴'+i+'_日付', '履歴'+i+'_時刻', '履歴'+i+'_メモ', '履歴'+i+'_ステータス変更');
-  }
-
-  var custRows = filtered.map(function(c){
-    var cHist = histories.filter(function(h){return h.customerId===c.id;});
-    cHist.sort(function(a,b){return b.timestamp-a.timestamp;});
-    var row = [c.name||'',c.phone||'',statusLabel[c.status]||'',c.address||'',c.needs||'',c.nextVisit||'',c.memo||''];
-    for (var i=0; i<maxHist; i++) {
-      var h = cHist[i];
-      if (h) {
-        row.push(typeLabel[h.type]||'', h.date||'', h.time||'', h.note||'', h.statusChange ? statusLabel[h.statusChange] : '');
-      } else {
-        row.push('','','','','');
+function addAtLatLng(lat,lng){
+  if(!google?.maps?.Geocoder){openCustomerModal('',lat,lng);return}
+  toast('住所を取得中...');
+  new google.maps.Geocoder().geocode({location:{lat,lng}},(res,status)=>{
+    let addr='';
+    if(status==='OK'&&res?.length){
+      for(const r of res){
+        let fa=(r.formatted_address||'').replace(/^日本[、,，]\s*/,'').replace(/^〒[\d\-]+\s*/,'').trim();
+        if(fa&&fa.length>3){addr=fa;break}
       }
     }
-    return row.map(function(v){ return '"'+(v+'').replace(/"/g,'""')+'"'; }).join(',');
+    openCustomerModal(addr,lat,lng);
   });
-
-  var csv1 = '\uFEFF【顧客一覧】\n' + custHeader.join(',') + '\n' + custRows.join('\n');
-
-  // ===== シート2: 全履歴一覧 =====
-  var histHeader = ['顧客名','ステータス','タイプ','日付','時刻','営業メモ','ステータス変更'];
-  var histSorted = histories.slice().sort(function(a,b){return b.timestamp-a.timestamp;});
-  var histRows = histSorted.map(function(h){
-    var c = customers.find(function(x){return x.id===h.customerId;});
-    return [
-      c?c.name:'不明', c?statusLabel[c.status]:'', typeLabel[h.type]||'',
-      h.date||'', h.time||'', h.note||'', h.statusChange?statusLabel[h.statusChange]:''
-    ].map(function(v){ return '"'+(v+'').replace(/"/g,'""')+'"'; }).join(',');
-  });
-
-  var csv2 = '\n\n【営業履歴一覧】\n' + histHeader.join(',') + '\n' + histRows.join('\n');
-
-  var csv = csv1 + csv2;
-  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '営業CRM_'+(new Date().toISOString().slice(0,10))+'.csv';
-  a.click();
-  showToast('📥 CSVを書き出しました（顧客'+filtered.length+'件・履歴'+histories.length+'件）');
 }
 
-// CSVインポート
-function importCSV(e) {
-  var file = e.target.files[0]; if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(ev) {
-    var text = ev.target.result.replace(/^\uFEFF/,'');
-    var lines = text.split('\n').filter(function(l){return l.trim();});
-    if (lines.length < 2) { alert('データがありません'); return; }
-    var statusMap = {'🔥 ホット':'hot','♨ ウォーム':'warm','💧 クール':'cool','❄ コールド':'cold','hot':'hot','warm':'warm','cool':'cool','cold':'cold'};
-    var count = 0;
-    for (var i=1; i<lines.length; i++) {
-      var cols = lines[i].match(/(".*?"|[^,]+)/g) || [];
-      var clean = cols.map(function(v){ return v.replace(/^"|"$/g,'').replace(/""/g,'"').trim(); });
-      var name=clean[0]||'', phone=clean[1]||'', status=statusMap[clean[2]]||'cool', address=clean[3]||'', needs=clean[4]||'', nextVisit=clean[5]||'', memo=clean[6]||'';
-      if (!name) continue;
-      addCustomerToDb({name:name,phone:phone,status:status,address:address,needs:needs,nextVisit:nextVisit,memo:memo,lat:null,lng:null});
-      count++;
-    }
-    showToast('📤 '+count+'件をインポートしました');
+/* ===== CUSTOMER MODAL ===== */
+let pendingLatLng=null;
+function openCustomerModal(prefillAddr='',lat=null,lng=null){
+  state.editCustId=null;pendingLatLng=lat!=null?{lat,lng}:null;
+  document.getElementById('custModalTitle').textContent=prefillAddr?'この場所に顧客追加':'顧客を追加';
+  document.getElementById('f_name').value='';document.getElementById('f_phone').value='';
+  document.getElementById('f_status').value='hot';document.getElementById('f_address').value=prefillAddr;
+  document.getElementById('f_needs').value='';document.getElementById('f_next').value='';
+  document.getElementById('f_memo').value='';
+  document.getElementById('firstHistSection').style.display='block';
+  const now=new Date();
+  document.getElementById('fh_type').value='visit';
+  document.getElementById('fh_date').value=now.toISOString().split('T')[0];
+  document.getElementById('fh_time').value=now.toTimeString().slice(0,5);
+  document.getElementById('fh_note').value='';
+  document.getElementById('custOverlay').classList.add('open');
+}
+
+function saveCustomer(){
+  const name=document.getElementById('f_name').value.trim();
+  if(!name){alert('氏名を入力してください');return}
+  const data={
+    name,phone:document.getElementById('f_phone').value.trim(),
+    status:document.getElementById('f_status').value,
+    address:document.getElementById('f_address').value.trim(),
+    needs:document.getElementById('f_needs').value.trim(),
+    nextVisit:document.getElementById('f_next').value,
+    memo:document.getElementById('f_memo').value.trim(),
+    lat:null,lng:null
   };
-  reader.readAsText(file, 'UTF-8');
-  e.target.value = '';
-}
-
-// CUSTOMERS
-function renderCustomers() {
-  var list = document.getElementById('customerList');
-  var arr = customers.filter(function(c){return currentFilter==='all'||c.status===currentFilter;});
-  if (!arr.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">顧客がいません<br>右上の「＋ 追加」から追加してください</div></div>'; return; }
-  list.innerHTML = arr.map(function(c){
-    var diff=getDayDiff(c.nextVisit), alertHtml='';
-    if (diff!==null) {
-      if (diff<0) alertHtml='<div class="card-alert over">訪問超過 '+Math.abs(diff)+'日</div>';
-      else if (diff===0) alertHtml='<div class="card-alert today">今日が訪問日</div>';
-      else if (diff<=3) alertHtml='<div class="card-alert soon">'+diff+'日後に訪問</div>';
-      else alertHtml='<div class="card-sub" style="display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>次回: '+c.nextVisit+'</div>';
-    }
-    var visits=histories.filter(function(h){return h.customerId===c.id&&h.type==='visit';}).length;
-    var lastH=histories.filter(function(h){return h.customerId===c.id;})[0]||null;
-    return '<div class="card" onclick="openDetail(\''+c.id+'\')">'
-      +'<div class="card-row"><span class="card-name">'+c.name+'</span>'
-      +'<span class="badge badge-'+c.status+'">'+statusLabel[c.status]+'</span>'
-      +(visits>0?'<span class="visit-badge'+(visits>=5?' over':'')+'">訪'+visits+'</span>':'')+'</div>'
-      +(c.phone?'<div class="card-sub" style="display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'+c.phone+'</div>':'')
-      +(c.address?'<div class="card-sub" style="display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+c.address+'</div>':'')
-      +(lastH?'<div class="card-sub" style="display:flex;align-items:center;gap:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>最終: '+lastH.date+'</div>':'')
-      +alertHtml+'</div>';
-  }).join('');
-}
-function filterBy(f, el) {
-  currentFilter = f;
-  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('active');}); el.classList.add('active'); renderCustomers();
-}
-
-// HISTORY
-function renderHistories() {
-  var list = document.getElementById('historyList');
-  if (!histories.length) { list.innerHTML = '<div class="empty"><div class="empty-icon" style="display:flex;justify-content:center;"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="empty-text">履歴がありません</div></div>'; return; }
-  list.innerHTML = histories.map(function(h){
-    var c=customers.find(function(x){return x.id===h.customerId;});
-    return '<div class="card" style="cursor:default;">'
-      +'<div style="display:flex;gap:10px;align-items:flex-start;">'
-      +getTypeIconHtml(h.type)
-      +'<div style="flex:1;"><div style="font-weight:600;font-size:15px;">'+(c?c.name:'不明')+'</div>'
-      +'<div style="font-size:12px;color:var(--text-sub);margin-top:2px;">'+(typeLabel[h.type]||'')+' | '+h.date+(h.time?' '+h.time:'')+'</div>'
-      +(h.note?'<div style="font-size:13px;margin-top:5px;">'+h.note+'</div>':'')+'</div>'
-      +'<div style="display:flex;flex-direction:column;gap:6px;align-items:center;">'
-      +'<button class="del-btn" style="color:var(--primary);" onclick="editHistoryItem(\''+h.id+'\')">'
-      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
-      +'</button>'
-      +'<button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
-      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
-      +'</button>'
-      +'</div>'
-      +'</div></div>';
-  }).join('');
-}
-
-// ALERTS
-function renderAlerts() {
-  var list = document.getElementById('alertList');
-  var over=[],td=[],soon=[];
-  customers.forEach(function(c){
-    if (!c.nextVisit) return;
-    var diff=getDayDiff(c.nextVisit);
-    if (diff<0) over.push({c:c,diff:diff}); else if (diff===0) td.push({c:c,diff:diff}); else if (diff<=7) soon.push({c:c,diff:diff});
-  });
-  over.sort(function(a,b){return a.diff-b.diff;}); soon.sort(function(a,b){return a.diff-b.diff;});
-  if (!over.length&&!td.length&&!soon.length) { list.innerHTML = '<div class="empty"><div class="empty-icon" style="display:flex;justify-content:center;"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="empty-text">アラートはありません</div></div>'; return; }
-  function makeItem(cls,tag,c) {
-    return '<div class="alert-item '+cls+'" onclick="openDetail(\''+c.id+'\')">'
-      +'<div class="alert-tag">'+tag+'</div>'
-      +'<div style="font-weight:600;font-size:15px;">'+c.name+'</div>'
-      +(c.address?'<div style="font-size:12px;color:var(--text-sub);margin-top:2px;">'+c.address+'</div>':'')
-      +'<div style="font-size:12px;color:var(--text-sub);margin-top:2px;">'+c.nextVisit+'</div></div>';
-  }
-  list.innerHTML=over.map(function(x){return makeItem('alert-over','訪問超過 '+Math.abs(x.diff)+'日',x.c);}).join('')
-    +td.map(function(x){return makeItem('alert-today','今日が訪問日',x.c);}).join('')
-    +soon.map(function(x){return makeItem('alert-soon',x.diff+'日後に訪問',x.c);}).join('');
-}
-
-// DETAIL
-function openDetail(id) {
-  var c=customers.find(function(x){return x.id===id;}); if (!c) return;
-  currentDetailId=id;
-  document.getElementById('detailName').textContent=c.name;
-  document.getElementById('detailBadge').innerHTML='<span class="badge badge-'+c.status+'">'+statusLabel[c.status]+'</span>';
-  var info='';
-  if (c.phone) info+='<div class="info-row"><span class="info-label">電話</span><span class="info-value"><a href="tel:'+c.phone+'" style="color:var(--primary);">'+c.phone+'</a></span></div>';
-  if (c.address) info+='<div class="info-row"><span class="info-label">住所</span><span class="info-value">'+c.address+'</span></div>';
-  if (c.needs) info+='<div class="info-row"><span class="info-label">ニーズ</span><span class="info-value">'+c.needs+'</span></div>';
-  if (c.nextVisit) {
-    var diff=getDayDiff(c.nextVisit);
-    var vs=diff!==null&&diff<0?'color:var(--danger);font-weight:600;':diff===0?'color:var(--warm);font-weight:600;':'';
-    info+='<div class="info-row"><span class="info-label">次回訪問</span><span class="info-value" style="'+vs+'">'+c.nextVisit+(diff!==null&&diff<0?' ('+Math.abs(diff)+'日超過)':diff===0?' (今日！)':'')+'</span></div>';
-  }
-  if (c.memo) info+='<div class="info-row"><span class="info-label">メモ</span><span class="info-value">'+c.memo+'</span></div>';
-  document.getElementById('detailInfo').innerHTML=info;
-  var callBtn=document.getElementById('detailCallBtn'); callBtn.style.display=c.phone?'':'none';
-  var calBtn=document.getElementById('detailCalBtn');
-  if (c.nextVisit) { var dt=c.nextVisit.replace(/-/g,''); calBtn.onclick=function(){window.open('https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(c.name+' 訪問')+'&dates='+dt+'/'+dt,'_blank');}; calBtn.style.display=''; } else calBtn.style.display='none';
-  var mapBtn=document.getElementById('detailMapBtn');
-  if (c.address) { mapBtn.onclick=function(){window.open('https://www.google.com/maps/search/'+encodeURIComponent(c.address),'_blank');}; mapBtn.style.display=''; } else mapBtn.style.display='none';
-  renderDetailHistory(id);
-  document.getElementById('detailPanel').classList.add('open');
-}
-function getTypeIconHtml(type) {
-  var bg = typeIconBg[type] || '#64748b';
-  var svg = typeIconSvg[type] || typeIconSvg.other;
-  return '<div style="width:36px;height:36px;border-radius:10px;background:'+bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;color:white;">'+svg+'</div>';
-}
-function renderDetailHistory(id) {
-  var cHist=histories.filter(function(h){return h.customerId===id;});
-  document.getElementById('detailHistoryList').innerHTML=cHist.length
-    ? cHist.map(function(h){
-        return '<div class="hist-item">'+getTypeIconHtml(h.type)
-          +'<div class="hist-body"><div style="font-size:13px;font-weight:600;color:var(--text);">'+( typeLabel[h.type]||'その他')+'</div>'
-          +'<div class="hist-meta">'+h.date+(h.time?' '+h.time:'')+'</div>'
-          +(h.note?'<div class="hist-note">'+h.note+'</div>':'')
-          +(h.statusChange?'<div style="font-size:12px;color:var(--primary);margin-top:2px;">→ '+statusLabel[h.statusChange]+'</div>':'')
-          +'</div>'
-          +'<div style="display:flex;flex-direction:column;gap:6px;align-items:center;">'
-          +'<button class="del-btn" style="color:var(--primary);" onclick="editHistoryItem(\''+h.id+'\')">'
-          +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
-          +'</button>'
-          +'<button class="del-btn" onclick="deleteHistoryItem(\''+h.id+'\')">'
-          +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>'
-          +'</button>'
-          +'</div></div>';
-      }).join('')
-    : '<div style="color:var(--text-sub);font-size:13px;padding:10px 0;text-align:center;">履歴なし</div>';
-}
-function closeDetail() { document.getElementById('detailPanel').classList.remove('open'); currentDetailId=null; }
-function callCurrentCustomer() {
-  var c=customers.find(function(x){return x.id===currentDetailId;}); if(!c||!c.phone) return;
-  if (confirm(c.name+' さんに電話しますか？\n'+c.phone)) window.location.href='tel:'+c.phone.replace(/[^0-9+]/g,'');
-}
-function editCurrentCustomer() {
-  var c=customers.find(function(x){return x.id===currentDetailId;}); if(!c) return;
-  editingId=currentDetailId;
-  document.getElementById('f_name').value=c.name; document.getElementById('f_phone').value=c.phone||'';
-  document.getElementById('f_status').value=c.status; document.getElementById('f_address').value=c.address||'';
-  document.getElementById('f_needs').value=c.needs||''; document.getElementById('f_nextVisit').value=c.nextVisit||'';
-  document.getElementById('f_memo').value=c.memo||'';
-  document.getElementById('modalCustomerTitle').textContent='顧客を編集';
-  document.getElementById('firstHistorySection').style.display='none';
-  closeDetail(); document.getElementById('modalCustomer').classList.add('open');
-}
-function deleteCurrentCustomer() {
-  if (!confirm('この顧客を削除しますか？')) return;
-  var id = currentDetailId; closeDetail();
-  // 削除中フラグを立てて再描画時にマーカーが復活しないようにする
-  deletingCustomerIds[id] = true;
-  // マップ上のマーカーを即削除
-  mapMarkers.forEach(function(m) {
-    if (m.customerId === id) {
-      m.marker.setMap(null);
-      m.infoWin.close();
-    }
-  });
-  mapMarkers = mapMarkers.filter(function(m){ return m.customerId !== id; });
-  renderMapListBody();
-  deleteCustomerFromDb(id).then(function(){
-    showToast('顧客を削除しました');
-    histories.filter(function(h){return h.customerId===id;}).forEach(function(h){deleteHistoryFromDb(h.id);});
-    // Firestore同期完了後にフラグ削除
-    setTimeout(function(){ delete deletingCustomerIds[id]; }, 3000);
-  });
-}
-
-// ADD/SAVE CUSTOMER
-function openAddCustomer(prefillAddr) {
-  editingId=null;
-  document.getElementById('f_name').value=''; document.getElementById('f_phone').value='';
-  document.getElementById('f_status').value='hot'; document.getElementById('f_address').value=prefillAddr||'';
-  document.getElementById('f_needs').value=''; document.getElementById('f_nextVisit').value=''; document.getElementById('f_memo').value='';
-  document.getElementById('firstHistorySection').style.display='block';
-  var now=new Date();
-  document.getElementById('f_h_type').value='visit';
-  document.getElementById('f_h_date').value=now.toISOString().split('T')[0];
-  document.getElementById('f_h_time').value=now.toTimeString().slice(0,5);
-  document.getElementById('f_h_note').value='';
-  document.getElementById('modalCustomerTitle').textContent=prefillAddr?'この場所に顧客追加':'顧客を追加';
-  document.getElementById('modalCustomer').classList.add('open');
-}
-function saveCustomer() {
-  var name=document.getElementById('f_name').value.trim(); if (!name) { alert('氏名を入力してください'); return; }
-  var data={name:name,phone:document.getElementById('f_phone').value.trim(),status:document.getElementById('f_status').value,
-    address:document.getElementById('f_address').value.trim(),needs:document.getElementById('f_needs').value.trim(),
-    nextVisit:document.getElementById('f_nextVisit').value,memo:document.getElementById('f_memo').value.trim(),lat:null,lng:null};
-  if (editingId) {
-    var orig=customers.find(function(x){return x.id===editingId;});
-    if (orig&&orig.address!==data.address) { data.lat=null; data.lng=null; } else if (orig) { data.lat=orig.lat||null; data.lng=orig.lng||null; }
-    updateCustomerInDb(editingId,data).then(function(){showToast('顧客情報を更新しました');});
-    document.getElementById('firstHistorySection').style.display='none';
-  } else {
-    if (pendingLatLng) { data.lat=pendingLatLng.lat; data.lng=pendingLatLng.lng; pendingLatLng=null; }
-    addCustomerToDb(data).then(function(docRef){
-      var hDate=document.getElementById('f_h_date').value;
-      if (hDate) {
-        addHistoryToDb({customerId:docRef.id,type:document.getElementById('f_h_type').value,date:hDate,
-          time:document.getElementById('f_h_time').value,note:document.getElementById('f_h_note').value.trim(),statusChange:null});
-        showToast('顧客と履歴を追加しました');
-      } else showToast('顧客を追加しました');
+  if(state.editCustId){
+    const orig=state.customers.find(c=>c.id===state.editCustId);
+    if(orig&&orig.address!==data.address){data.lat=null;data.lng=null}
+    else if(orig){data.lat=orig.lat??null;data.lng=orig.lng??null}
+    updC(state.editCustId,data).then(()=>toast('顧客情報を更新しました'));
+  }else{
+    if(pendingLatLng){data.lat=pendingLatLng.lat;data.lng=pendingLatLng.lng;pendingLatLng=null}
+    addC(data).then(ref=>{
+      const hDate=document.getElementById('fh_date').value;
+      if(hDate)addH({customerId:ref.id,type:document.getElementById('fh_type').value,
+        date:hDate,time:document.getElementById('fh_time').value,
+        note:document.getElementById('fh_note').value.trim(),statusChange:null});
+      toast('顧客を追加しました');
     });
-    document.getElementById('firstHistorySection').style.display='none';
   }
-  closeModal('modalCustomer');
+  closeOverlay('custOverlay');
 }
 
-// HISTORY
-var editingHistoryId = null;
+function editCustomer(){
+  const c=state.customers.find(x=>x.id===state.detailId);
+  if(!c)return;
+  state.editCustId=state.detailId;
+  document.getElementById('custModalTitle').textContent='顧客を編集';
+  document.getElementById('f_name').value=c.name;document.getElementById('f_phone').value=c.phone||'';
+  document.getElementById('f_status').value=c.status;document.getElementById('f_address').value=c.address||'';
+  document.getElementById('f_needs').value=c.needs||'';document.getElementById('f_next').value=c.nextVisit||'';
+  document.getElementById('f_memo').value=c.memo||'';
+  document.getElementById('firstHistSection').style.display='none';
+  closeDetail();
+  document.getElementById('custOverlay').classList.add('open');
+}
 
-function openRecordHistory(customerId) {
-  if (!customers.length) { alert('先に顧客を追加してください'); return; }
-  editingHistoryId = null;
-  document.getElementById('modalHistoryTitle').textContent = '営業履歴を記録';
-  document.getElementById('histSaveBtn').textContent = '記録する';
-  var sel=document.getElementById('h_customer');
-  sel.innerHTML=customers.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');
-  sel.disabled = false;
-  if (customerId) sel.value=customerId;
-  var now=new Date();
+function deleteCustomer(){
+  if(!confirm('この顧客を削除しますか？'))return;
+  const id=state.detailId;closeDetail();
+  state.deletingIds[id]=true;
+  if(state.markers[id]){state.markers[id].setMap(null);delete state.markers[id]}
+  if(state.infoWindows[id]){state.infoWindows[id].close();delete state.infoWindows[id]}
+  delC(id).then(()=>{
+    state.histories.filter(h=>h.customerId===id).forEach(h=>delH(h.id));
+    toast('顧客を削除しました');
+    setTimeout(()=>delete state.deletingIds[id],3000);
+  });
+  renderListPanel();
+}
+
+/* ===== HISTORY MODAL ===== */
+function openHistoryModal(custId){
+  if(!state.customers.length){alert('先に顧客を追加してください');return}
+  state.editHistId=null;
+  document.getElementById('histModalTitle').textContent='営業履歴を記録';
+  document.getElementById('histSaveBtn').textContent='記録する';
+  const sel=document.getElementById('h_customer');
+  sel.innerHTML=state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  sel.disabled=false;
+  if(custId)sel.value=custId;
+  const now=new Date();
+  document.getElementById('h_type').value='visit';
   document.getElementById('h_date').value=now.toISOString().split('T')[0];
   document.getElementById('h_time').value=now.toTimeString().slice(0,5);
-  document.getElementById('h_type').value='visit'; document.getElementById('h_note').value='';
-  document.getElementById('h_status').value=''; document.getElementById('h_nextVisit').value='';
-  document.getElementById('modalHistory').classList.add('open');
+  document.getElementById('h_note').value='';
+  document.getElementById('h_status').value='';
+  document.getElementById('h_next').value='';
+  document.getElementById('histOverlay').classList.add('open');
 }
 
-function editHistoryItem(id) {
-  var h = histories.find(function(x){ return x.id === id; });
-  if (!h) return;
-  editingHistoryId = id;
-  document.getElementById('modalHistoryTitle').textContent = '営業履歴を編集';
-  document.getElementById('histSaveBtn').textContent = '更新する';
-  var sel = document.getElementById('h_customer');
-  sel.innerHTML = customers.map(function(c){return '<option value="'+c.id+'">'+c.name+'</option>';}).join('');
-  sel.value = h.customerId;
-  sel.disabled = false; // 顧客変更可能
-  document.getElementById('h_type').value = h.type || 'visit';
-  document.getElementById('h_date').value = h.date || '';
-  document.getElementById('h_time').value = h.time || '';
-  document.getElementById('h_note').value = h.note || '';
-  document.getElementById('h_status').value = h.statusChange || '';
-  document.getElementById('h_nextVisit').value = '';
-  document.getElementById('modalHistory').classList.add('open');
+function editHistoryItem(id){
+  const h=state.histories.find(x=>x.id===id);
+  if(!h)return;
+  state.editHistId=id;
+  document.getElementById('histModalTitle').textContent='営業履歴を編集';
+  document.getElementById('histSaveBtn').textContent='更新する';
+  const sel=document.getElementById('h_customer');
+  sel.innerHTML=state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  sel.value=h.customerId;sel.disabled=false;
+  document.getElementById('h_type').value=h.type||'visit';
+  document.getElementById('h_date').value=h.date||'';
+  document.getElementById('h_time').value=h.time||'';
+  document.getElementById('h_note').value=h.note||'';
+  document.getElementById('h_status').value=h.statusChange||'';
+  document.getElementById('h_next').value='';
+  document.getElementById('histOverlay').classList.add('open');
 }
 
-function saveHistory() {
-  var date=document.getElementById('h_date').value; if (!date) { alert('日付を入力してください'); return; }
-  var customerId=document.getElementById('h_customer').value;
-  var sc=document.getElementById('h_status').value, nv=document.getElementById('h_nextVisit').value;
-  var data = {
-    customerId: customerId,
-    type: document.getElementById('h_type').value,
-    date: date,
-    time: document.getElementById('h_time').value,
-    note: document.getElementById('h_note').value.trim(),
-    statusChange: sc||null
-  };
-  if (editingHistoryId) {
-    // 編集モード：既存履歴を更新
-    window._updateDoc(window._doc(window._db,'histories',editingHistoryId), data)
-      .then(function(){ showToast('履歴を更新しました'); });
-    editingHistoryId = null;
-  } else {
-    // 新規モード
-    addHistoryToDb(data);
-    if (sc||nv) { var upd={}; if(sc) upd.status=sc; if(nv) upd.nextVisit=nv; updateCustomerInDb(customerId,upd); }
-    showToast('履歴を記録しました');
+function saveHistory(){
+  const date=document.getElementById('h_date').value;
+  if(!date){alert('日付を入力してください');return}
+  const cid=document.getElementById('h_customer').value;
+  const sc=document.getElementById('h_status').value;
+  const nv=document.getElementById('h_next').value;
+  const data={customerId:cid,type:document.getElementById('h_type').value,
+    date,time:document.getElementById('h_time').value,
+    note:document.getElementById('h_note').value.trim(),statusChange:sc||null};
+  if(state.editHistId){
+    updH(state.editHistId,data).then(()=>toast('履歴を更新しました'));
+    state.editHistId=null;
+  }else{
+    addH(data);
+    if(sc||nv){const u={};if(sc)u.status=sc;if(nv)u.nextVisit=nv;updC(cid,u)}
+    toast('履歴を記録しました');
   }
-  closeModal('modalHistory');
+  closeOverlay('histOverlay');
 }
 
-function deleteHistoryItem(id) { deleteHistoryFromDb(id).then(function(){showToast('履歴を削除しました');}); }
+function deleteHistItem(id){
+  delH(id).then(()=>toast('履歴を削除しました'));
+}
 
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-overlay').forEach(function(o){
-  o.addEventListener('click', function(e){ if(e.target===o) o.classList.remove('open'); });
-});
+/* ===== DETAIL ===== */
+function openDetail(id){
+  const c=state.customers.find(x=>x.id===id);
+  if(!c)return;
+  state.detailId=id;
+  document.getElementById('detailName').textContent=c.name;
+  document.getElementById('detailBadge').innerHTML=`<span class="badge badge-${c.status}">${STATUS_LABEL[c.status]||''}</span>`;
+  let info='';
+  if(c.phone)info+=`<div class="info-row"><span class="info-label">電話</span><span class="info-value"><a href="tel:${c.phone}" style="color:var(--primary)">${c.phone}</a></span></div>`;
+  if(c.address)info+=`<div class="info-row"><span class="info-label">住所</span><span class="info-value">${c.address}</span></div>`;
+  if(c.needs)info+=`<div class="info-row"><span class="info-label">ニーズ</span><span class="info-value">${c.needs}</span></div>`;
+  if(c.nextVisit){
+    const d=dayDiff(c.nextVisit);
+    const s=d<0?'color:var(--hot);font-weight:600':d===0?'color:var(--warm);font-weight:600':'';
+    info+=`<div class="info-row"><span class="info-label">次回訪問</span><span class="info-value" style="${s}">${c.nextVisit}${d<0?' ('+Math.abs(d)+'日超過)':d===0?' (今日!)':''}</span></div>`;
+  }
+  if(c.memo)info+=`<div class="info-row"><span class="info-label">メモ</span><span class="info-value">${c.memo}</span></div>`;
+  document.getElementById('detailInfo').innerHTML=info;
+  // call btn
+  const cb=document.getElementById('callBtn');
+  if(c.phone){cb.style.display='';cb.onclick=()=>{if(confirm(`${c.name}さんに電話しますか?\n${c.phone}`))location.href='tel:'+c.phone.replace(/[^0-9+]/g,'')}}
+  else cb.style.display='none';
+  // cal btn
+  const calb=document.getElementById('calBtn');
+  if(c.nextVisit){const dt=c.nextVisit.replace(/-/g,'');calb.style.display='';calb.onclick=()=>window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(c.name+' 訪問')}&dates=${dt}/${dt}`,'_blank')}
+  else calb.style.display='none';
+  // map btn
+  const mb=document.getElementById('mapBtn');
+  if(c.address){mb.style.display='';mb.onclick=()=>window.open(`https://www.google.com/maps/search/${encodeURIComponent(c.address)}`,'_blank')}
+  else mb.style.display='none';
+  renderDetailHistory(id);
+  document.getElementById('detail').classList.add('open');
+}
 
-(function(){
-  var key = getApiKey();
-  if (key) document.getElementById('apiKeyInput').value = key;
-  renderPseudoPins();
+function renderDetailHistory(id){
+  const cHist=state.histories.filter(h=>h.customerId===id);
+  const el=document.getElementById('detailHistList');
+  if(!el)return;
+  el.innerHTML=cHist.length?cHist.map(h=>`
+    <div class="hist-item">
+      <div class="hist-icon" style="background:${TYPE_COLOR[h.type]||'#64748b'}">${svgIcon(h.type)}</div>
+      <div class="hist-body">
+        <div class="hist-type">${TYPE_LABEL[h.type]||''}</div>
+        <div class="hist-meta">${h.date}${h.time?' '+h.time:''}</div>
+        ${h.note?`<div class="hist-note">${h.note}</div>`:''}
+        ${h.statusChange?`<div style="font-size:12px;color:var(--primary);margin-top:2px;">→ ${STATUS_LABEL[h.statusChange]||''}</div>`:''}
+      </div>
+      <div class="hist-actions">
+        <button class="icon-btn edit" onclick="editHistoryItem('${h.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="deleteHistItem('${h.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>`).join('')
+  :'<div style="color:var(--text-sub);font-size:13px;padding:10px 0;text-align:center;">履歴なし</div>';
+}
 
-  // Firebase準備完了イベントを受け取って同期開始
-  window.addEventListener('firebaseReady', function() {
-    startFirestoreSync();
-    // APIキーは固定なので常に地図を起動
-    document.getElementById('mapSetupPanel').style.display = 'none';
-    document.getElementById('mapRealPanel').style.display = 'block';
-    loadMapScript(getApiKey());
+function closeDetail(){document.getElementById('detail').classList.remove('open');state.detailId=null}
+
+/* ===== CUSTOMERS RENDER ===== */
+function renderCustomers(){
+  const el=document.getElementById('custList');
+  const arr=state.customers.filter(c=>state.custFilter==='all'||c.status===state.custFilter);
+  if(!arr.length){el.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><p>顧客がいません<br>右上の「追加」から追加してください</p></div>`;return}
+  el.innerHTML=arr.map(c=>{
+    const d=dayDiff(c.nextVisit);
+    let alert='';
+    if(d!==null){
+      if(d<0)alert=`<span class="alert-pill over">訪問超過 ${Math.abs(d)}日</span>`;
+      else if(d===0)alert=`<span class="alert-pill today">今日が訪問日</span>`;
+      else if(d<=3)alert=`<span class="alert-pill soon">${d}日後に訪問</span>`;
+    }
+    const visits=state.histories.filter(h=>h.customerId===c.id&&h.type==='visit').length;
+    const lh=state.histories.filter(h=>h.customerId===c.id)[0];
+    return `<div class="card" onclick="openDetail('${c.id}')">
+      <div class="card-row">
+        <span class="card-name">${c.name}</span>
+        <span class="badge badge-${c.status}">${STATUS_LABEL[c.status]||''}</span>
+        ${visits>0?`<span class="visit-badge${visits>=5?' over':''}">訪${visits}</span>`:''}
+      </div>
+      ${c.phone?`<div class="card-sub"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.84a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${c.phone}</div>`:''}
+      ${c.address?`<div class="card-sub"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${c.address}</div>`:''}
+      ${lh?`<div class="card-sub"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>最終: ${lh.date} ${TYPE_LABEL[lh.type]||''}</div>`:''}
+      ${alert}
+    </div>`;
+  }).join('');
+}
+
+function filterCustomers(f,el){
+  state.custFilter=f;
+  document.querySelectorAll('#custChips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderCustomers();
+}
+
+/* ===== HISTORIES RENDER ===== */
+function renderHistories(){
+  const el=document.getElementById('histList');
+  if(!state.histories.length){el.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><p>履歴がありません</p></div>`;return}
+  el.innerHTML=state.histories.map(h=>{
+    const c=state.customers.find(x=>x.id===h.customerId);
+    return `<div class="card" style="cursor:default">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div class="hist-icon" style="background:${TYPE_COLOR[h.type]||'#64748b'}">${svgIcon(h.type)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:15px">${c?.name||'不明'}</div>
+          <div style="font-size:12px;color:var(--text-sub);margin-top:2px">${TYPE_LABEL[h.type]||''} | ${h.date}${h.time?' '+h.time:''}</div>
+          ${h.note?`<div style="font-size:13px;margin-top:5px">${h.note}</div>`:''}
+        </div>
+        <div class="hist-actions">
+          <button class="icon-btn edit" onclick="editHistoryItem('${h.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="icon-btn del" onclick="deleteHistItem('${h.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ===== ALERTS RENDER ===== */
+function renderAlerts(){
+  const el=document.getElementById('alertList');
+  let over=[],today=[],soon=[];
+  state.customers.forEach(c=>{
+    if(!c.nextVisit)return;
+    const d=dayDiff(c.nextVisit);
+    if(d<0)over.push({c,d});
+    else if(d===0)today.push({c,d});
+    else if(d<=3)soon.push({c,d});
   });
-
-  // すでにfirebaseReadyが発火済みの場合（まれ）
-  if (window._firebaseReady) {
-    startFirestoreSync();
-    document.getElementById('mapSetupPanel').style.display = 'none';
-    document.getElementById('mapRealPanel').style.display = 'block';
-    loadMapScript(getApiKey());
+  over.sort((a,b)=>a.d-b.d);soon.sort((a,b)=>a.d-b.d);
+  if(!over.length&&!today.length&&!soon.length){
+    el.innerHTML=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p>アラートはありません</p></div>`;return;
   }
-})();
+  const item=(cls,tag,c)=>`<div class="alert-item ${cls}" onclick="openDetail('${c.id}')">
+    <span class="alert-tag">${tag}</span>
+    <div style="font-weight:600;font-size:15px;margin-top:4px">${c.name}</div>
+    ${c.address?`<div style="font-size:12px;color:var(--text-sub);margin-top:2px">${c.address}</div>`:''}
+    <div style="font-size:12px;color:var(--text-sub);margin-top:2px">${c.nextVisit}</div>
+  </div>`;
+  el.innerHTML=
+    over.map(({c,d})=>item('over',`訪問超過 ${Math.abs(d)}日`,c)).join('')+
+    today.map(({c})=>item('today','今日が訪問日',c)).join('')+
+    soon.map(({c,d})=>item('soon',`${d}日後に訪問`,c)).join('');
+}
+
+/* ===== CSV EXPORT ===== */
+function exportCSV(){
+  const maxH=Math.max(0,...state.customers.map(c=>state.histories.filter(h=>h.customerId===c.id).length));
+  const hdr=['氏名','電話','ステータス','住所','ニーズ','次回訪問','メモ'];
+  for(let i=1;i<=maxH;i++)hdr.push(`履歴${i}_タイプ`,`履歴${i}_日付`,`履歴${i}_時刻`,`履歴${i}_メモ`,`履歴${i}_ステータス変更`);
+  const rows=state.customers.map(c=>{
+    const ch=state.histories.filter(h=>h.customerId===c.id).sort((a,b)=>b.timestamp-a.timestamp);
+    const r=[c.name||'',c.phone||'',STATUS_LABEL[c.status]||'',c.address||'',c.needs||'',c.nextVisit||'',c.memo||''];
+    for(let i=0;i<maxH;i++){const h=ch[i];r.push(h?TYPE_LABEL[h.type]||'':'',h?h.date||'':'',h?h.time||'':'',h?h.note||'':'',h&&h.statusChange?STATUS_LABEL[h.statusChange]||'':'')}
+    return r.map(v=>`"${(v+'').replace(/"/g,'""')}"`).join(',');
+  });
+  // 全履歴
+  const hdr2=['顧客名','ステータス','タイプ','日付','時刻','メモ','ステータス変更'];
+  const rows2=state.histories.map(h=>{
+    const c=state.customers.find(x=>x.id===h.customerId);
+    return [c?.name||'不明',c?STATUS_LABEL[c.status]||'':'',TYPE_LABEL[h.type]||'',h.date||'',h.time||'',h.note||'',h.statusChange?STATUS_LABEL[h.statusChange]||'':''].map(v=>`"${(v+'').replace(/"/g,'""')}"`).join(',');
+  });
+  const csv='\uFEFF【顧客一覧】\n'+hdr.join(',')+'\n'+rows.join('\n')+'\n\n【営業履歴】\n'+hdr2.join(',')+'\n'+rows2.join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`営業CRM_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  toast(`CSV書き出し完了（顧客${state.customers.length}件・履歴${state.histories.length}件）`);
+}
+
+/* ===== CSV IMPORT ===== */
+function importCSV(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const text=ev.target.result.replace(/^\uFEFF/,'');
+    const lines=text.split('\n').filter(l=>l.trim()&&!l.startsWith('【'));
+    if(lines.length<2){alert('データがありません');return}
+    const sMap={'🔥 ホット':'hot','♨ ウォーム':'warm','💧 クール':'cool','❄ コールド':'cold',hot:'hot',warm:'warm',cool:'cool',cold:'cold'};
+    let count=0;
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].match(/(".*?"|[^,]+)/g)||[];
+      const v=cols.map(c=>c.replace(/^"|"$/g,'').replace(/""/g,'"').trim());
+      const name=v[0];if(!name)continue;
+      const existing=state.customers.find(c=>c.name===name&&c.phone===(v[1]||''));
+      const data={name,phone:v[1]||'',status:sMap[v[2]]||'cool',address:v[3]||'',needs:v[4]||'',nextVisit:v[5]||'',memo:v[6]||'',lat:null,lng:null};
+      if(existing)updC(existing.id,data);
+      else addC(data);
+      count++;
+    }
+    toast(`${count}件をインポートしました`);
+  };
+  reader.readAsText(file,'UTF-8');
+  e.target.value='';
+}
+
+/* ===== OVERLAY CLOSE ON BACKDROP ===== */
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
 </script>
 </body>
 </html>
