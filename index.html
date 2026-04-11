@@ -413,6 +413,7 @@ window.dispatchEvent(new Event('fbReady'));
 /* ===== STATE ===== */
 const state={
   customers:[],histories:[],
+  histMap:new Map(),   // customerId -> histories[] (ソート済み) O(1)参照用
   custFilter:'all',mapFilter:'all',
   tab:'map',detailId:null,
   editCustId:null,editHistId:null,
@@ -422,6 +423,23 @@ const state={
   mapLoaded:false,
   deletingIds:{}
 };
+
+// histMapを再構築（historiesが更新されるたびに呼ぶ）
+function rebuildHistMap(){
+  state.histMap=new Map();
+  for(const h of state.histories){
+    const arr=state.histMap.get(h.customerId)||[];
+    arr.push(h);
+    state.histMap.set(h.customerId,arr);
+  }
+  // 各配列をtimestamp降順でソート
+  for(const [,arr] of state.histMap) arr.sort((a,b)=>b.timestamp-a.timestamp);
+}
+
+// histMapからO(1)で取得するヘルパー
+const getHist=(cid)=>state.histMap.get(cid)||[];
+const getLatest=(cid)=>getHist(cid)[0]||null;
+const getVisitCount=(cid)=>getHist(cid).filter(h=>h.type==='visit').length;
 
 /* ===== CONSTANTS ===== */
 const MAPS_KEY='AIzaSyDTE8gMpxRJo19XZX-y8rmDpNtW4hyz0go';
@@ -475,6 +493,7 @@ function startSync(){
   window.$snap(window.$q(window.$col(window.$db,'histories'),window.$ord('timestamp','desc')),snap=>{
     state.histories=[];
     snap.forEach(d=>state.histories.push({id:d.id,...d.data()}));
+    rebuildHistMap(); // O(n)一回でMapを構築
     renderAll();
   });
 }
@@ -548,8 +567,8 @@ function addMarker(c){
     icon:{url:`data:image/svg+xml,${makePinSVG(STATUS_COLOR[c.status]||'#2563eb')}`,scaledSize:new google.maps.Size(28,36),anchor:new google.maps.Point(14,36)},
     zIndex:{hot:4,warm:3,cool:2,cold:1}[c.status]||1
   });
-  const hist=state.histories.filter(h=>h.customerId===c.id).sort((a,b)=>b.timestamp-a.timestamp);
-  const latest=hist[0];
+  const hist=getHist(c.id);
+  const latest=getLatest(c.id);
   const sc=STATUS_COLOR[c.status]||'#2563eb';
   const content=`<div style="font-family:-apple-system,sans-serif;padding:4px;min-width:180px;max-width:230px;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
@@ -577,13 +596,33 @@ function addMarker(c){
   if(state.allBubbles)iw.open(state.map,marker);
 }
 
+// ④ Geocoderキャッシュ（localStorage）
+const GEO_CACHE_KEY='crm_geo_cache';
+function getGeoCache(){try{return JSON.parse(localStorage.getItem(GEO_CACHE_KEY)||'{}')}catch{return{}}}
+function setGeoCache(addr,lat,lng){
+  try{const c=getGeoCache();c[addr]={lat,lng,ts:Date.now()};localStorage.setItem(GEO_CACHE_KEY,JSON.stringify(c))}catch{}
+}
+
 function geocodeAndAdd(c){
-  if(!google?.maps?.Geocoder)return;
+  if(!c.address||!google?.maps?.Geocoder)return;
+  // キャッシュを確認（同じ住所なら即座に使用）
+  const cache=getGeoCache();
+  if(cache[c.address]){
+    const{lat,lng}=cache[c.address];
+    updC(c.id,{lat,lng}); // Firestoreにも保存して次回以降はAPI不要
+    addMarker({...c,lat,lng});
+    return;
+  }
+  // API呼び出し（lat/lngがない場合のみ・1回限り）
   new google.maps.Geocoder().geocode({address:c.address,region:'JP'},(res,status)=>{
     if(status==='OK'&&res[0]){
       const lat=res[0].geometry.location.lat(),lng=res[0].geometry.location.lng();
-      updC(c.id,{lat,lng});
+      setGeoCache(c.address,lat,lng); // キャッシュに保存
+      updC(c.id,{lat,lng});           // Firestoreに保存（以降API不要）
       addMarker({...c,lat,lng});
+    }else{
+      console.warn('Geocode failed:',status,c.address);
+      // 失敗してもリトライしない（API制限保護）
     }
   });
 }
@@ -604,8 +643,8 @@ function updateMarkers(){
       state.markers[c.id].setIcon({url:`data:image/svg+xml,${makePinSVG(STATUS_COLOR[c.status]||'#2563eb')}`,scaledSize:new google.maps.Size(28,36),anchor:new google.maps.Point(14,36)});
       // update info window content
       if(state.infoWindows[c.id]){
-        const hist=state.histories.filter(h=>h.customerId===c.id).sort((a,b)=>b.timestamp-a.timestamp);
-        const latest=hist[0];
+        const hist=getHist(c.id);
+        const latest=getLatest(c.id);
         const sc=STATUS_COLOR[c.status]||'#2563eb';
         state.infoWindows[c.id].setContent(`<div style="font-family:-apple-system,sans-serif;padding:4px;min-width:180px;max-width:230px;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
@@ -623,8 +662,11 @@ function updateMarkers(){
       }
       return;
     }
-    if(c.lat!=null&&c.lng!=null)addMarker(c);
-    else if(c.address)geocodeAndAdd(c);
+    if(c.lat!=null&&c.lng!=null&&!isNaN(c.lat)&&!isNaN(c.lng)){
+      addMarker(c); // lat/lng確定済み → APIを絶対に叩かない
+    }else if(c.address&&!state.deletingIds[c.id]){
+      geocodeAndAdd(c); // アドレスのみ → キャッシュ確認後にAPI
+    }
   });
   // hide filtered
   state.customers.forEach(c=>{
@@ -677,7 +719,7 @@ function renderListPanel(){
   const filtered=state.customers.filter(c=>state.mapFilter==='all'||c.status===state.mapFilter);
   document.getElementById('listPanelTitle').textContent=`ピン一覧（${filtered.length}件）`;
   if(!filtered.length){body.innerHTML='<div class="empty"><p>該当する顧客がいません</p></div>';return;}
-  const hist=id=>state.histories.filter(h=>h.customerId===id)[0];
+  const hist=id=>getLatest(id);
   body.innerHTML=filtered.map(c=>{
     const lh=hist(c.id);
     const sc=STATUS_COLOR[c.status]||'#2563eb';
@@ -790,7 +832,7 @@ function deleteCustomer(){
   if(state.markers[id]){state.markers[id].setMap(null);delete state.markers[id]}
   if(state.infoWindows[id]){state.infoWindows[id].close();delete state.infoWindows[id]}
   delC(id).then(()=>{
-    state.histories.filter(h=>h.customerId===id).forEach(h=>delH(h.id));
+    getHist(id).forEach(h=>delH(h.id));
     toast('顧客を削除しました');
     setTimeout(()=>delete state.deletingIds[id],3000);
   });
@@ -894,7 +936,7 @@ function openDetail(id){
 }
 
 function renderDetailHistory(id){
-  const cHist=state.histories.filter(h=>h.customerId===id);
+  const cHist=getHist(id);
   const el=document.getElementById('detailHistList');
   if(!el)return;
   el.innerHTML=cHist.length?cHist.map(h=>`
@@ -933,8 +975,8 @@ function renderCustomers(){
       else if(d===0)alert=`<span class="alert-pill today">今日が訪問日</span>`;
       else if(d<=3)alert=`<span class="alert-pill soon">${d}日後に訪問</span>`;
     }
-    const visits=state.histories.filter(h=>h.customerId===c.id&&h.type==='visit').length;
-    const lh=state.histories.filter(h=>h.customerId===c.id)[0];
+    const visits=getVisitCount(c.id);
+    const lh=getLatest(c.id);
     return `<div class="card" onclick="openDetail('${c.id}')">
       <div class="card-row">
         <span class="card-name">${c.name}</span>
@@ -1012,11 +1054,11 @@ function renderAlerts(){
 
 /* ===== CSV EXPORT ===== */
 function exportCSV(){
-  const maxH=Math.max(0,...state.customers.map(c=>state.histories.filter(h=>h.customerId===c.id).length));
+  const maxH=Math.max(0,...state.customers.map(c=>getHist(c.id).length));
   const hdr=['氏名','電話','ステータス','住所','ニーズ','次回訪問','メモ'];
   for(let i=1;i<=maxH;i++)hdr.push(`履歴${i}_タイプ`,`履歴${i}_日付`,`履歴${i}_時刻`,`履歴${i}_メモ`,`履歴${i}_ステータス変更`);
   const rows=state.customers.map(c=>{
-    const ch=state.histories.filter(h=>h.customerId===c.id).sort((a,b)=>b.timestamp-a.timestamp);
+    const ch=getHist(c.id);
     const r=[c.name||'',c.phone||'',STATUS_LABEL[c.status]||'',c.address||'',c.needs||'',c.nextVisit||'',c.memo||''];
     for(let i=0;i<maxH;i++){const h=ch[i];r.push(h?TYPE_LABEL[h.type]||'':'',h?h.date||'':'',h?h.time||'':'',h?h.note||'':'',h&&h.statusChange?STATUS_LABEL[h.statusChange]||'':'')}
     return r.map(v=>`"${(v+'').replace(/"/g,'""')}"`).join(',');
