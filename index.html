@@ -47,8 +47,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
 /* ===== MAP ===== */
 #mapEl{width:100%;height:100%}
-.map-filters{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;z-index:10;overflow-x:auto;scrollbar-width:none;pointer-events:none}
-.map-filters::-webkit-scrollbar{display:none}
+.map-filters{position:absolute;top:8px;left:8px;right:8px;display:flex;flex-direction:column;gap:6px;z-index:10;pointer-events:none}
+.map-filter-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.map-filter-chips::-webkit-scrollbar{display:none}
+/* 住所検索バー */
+.map-search-bar{display:flex;gap:6px;pointer-events:auto}
+.map-search-input{flex:1;padding:8px 14px;border-radius:var(--radius-full);border:none;font-size:14px;font-family:inherit;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);outline:none;min-width:0}
+.map-search-btn{padding:8px 16px;border-radius:var(--radius-full);border:none;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(37,99,235,.35);white-space:nowrap;flex-shrink:0}
 .map-chip{flex-shrink:0;padding:5px 13px;border-radius:var(--radius-full);border:none;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);pointer-events:auto}
 .map-chip.all{background:#fff;color:var(--text)}
 .map-chip.hot{background:var(--hot);color:#fff}
@@ -227,11 +232,24 @@ textarea.form-input{height:70px;resize:none}
     <button class="map-add-confirm" onclick="confirmMapAdd()">ここに追加</button>
   </div>
   <div class="map-filters">
-    <button class="map-chip all active" onclick="setMapFilter('all',this)">全て</button>
-    <button class="map-chip hot" onclick="setMapFilter('hot',this)">ホット</button>
-    <button class="map-chip warm" onclick="setMapFilter('warm',this)">ウォーム</button>
-    <button class="map-chip cool" onclick="setMapFilter('cool',this)">クール</button>
-    <button class="map-chip cold" onclick="setMapFilter('cold',this)">コールド</button>
+    <!-- 住所検索バー -->
+    <div class="map-search-bar">
+      <input class="map-search-input" id="mapSearchInput" type="text"
+        placeholder="住所・場所を検索..."
+        onkeydown="if(event.key==='Enter')searchMapAddress()">
+      <button class="map-search-btn" onclick="searchMapAddress()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        検索
+      </button>
+    </div>
+    <!-- フィルターチップ -->
+    <div class="map-filter-chips">
+      <button class="map-chip all active" onclick="setMapFilter('all',this)" style="pointer-events:auto">全て</button>
+      <button class="map-chip hot" onclick="setMapFilter('hot',this)" style="pointer-events:auto">ホット</button>
+      <button class="map-chip warm" onclick="setMapFilter('warm',this)" style="pointer-events:auto">ウォーム</button>
+      <button class="map-chip cool" onclick="setMapFilter('cool',this)" style="pointer-events:auto">クール</button>
+      <button class="map-chip cold" onclick="setMapFilter('cold',this)" style="pointer-events:auto">コールド</button>
+    </div>
   </div>
   <div class="map-ctrls">
     <button class="map-btn primary" onclick="addAtCurrentLocation()" title="現在地に追加">
@@ -794,6 +812,62 @@ function addAtCurrentLocation(){
   if(!navigator.geolocation){alert('位置情報が使えません');return}
   toast('現在地を取得中...');
   navigator.geolocation.getCurrentPosition(p=>addAtLatLng(p.coords.latitude,p.coords.longitude),()=>toast('位置情報の取得に失敗しました'));
+}
+
+// ===== 住所検索 =====
+function searchMapAddress(){
+  const q = document.getElementById('mapSearchInput').value.trim();
+  if(!q){ toast('住所を入力してください'); return; }
+  if(!state.map){ toast('地図が読み込まれていません'); return; }
+  toast('検索中...');
+  new google.maps.Geocoder().geocode(
+    { address: q, region: 'JP' },
+    function(res, status){
+      if(status === 'OK' && res[0]){
+        const loc = res[0].geometry.location;
+        state.map.panTo(loc);
+        state.map.setZoom(17);
+        // 一時マーカー（赤いアニメーション）を表示
+        if(window._searchMarker) window._searchMarker.setMap(null);
+        window._searchMarker = new google.maps.Marker({
+          position: loc,
+          map: state.map,
+          title: res[0].formatted_address,
+          icon:{
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 12,
+            fillColor: '#ef4444',
+            fillOpacity: 1,
+            strokeColor: '#fff',
+            strokeWeight: 3
+          },
+          animation: google.maps.Animation.DROP,
+          zIndex: 9999
+        });
+        // 吹き出しで住所を表示
+        const cleanAddr = res[0].formatted_address
+          .replace(/^日本[、,，]\s*/, '')
+          .replace(/〒[\d\-]+\s*/g, '')
+          .trim();
+        const iw = new google.maps.InfoWindow({
+          content: '<div style="font-family:-apple-system,sans-serif;padding:4px;max-width:220px;">'
+            + '<div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:6px;">' + cleanAddr + '</div>'
+            + '<button onclick="window._searchAddHere()" style="width:100%;padding:8px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">この場所に顧客を追加</button>'
+            + '</div>'
+        });
+        iw.open(state.map, window._searchMarker);
+        // 「この場所に追加」ボタンのハンドラ
+        window._searchAddHere = function(){
+          iw.close();
+          window._searchMarker.setMap(null);
+          addAtLatLng(loc.lat(), loc.lng());
+        };
+        toast('「この場所に顧客を追加」で登録できます');
+      } else {
+        toast('住所が見つかりませんでした');
+      }
+    }
+  );
 }
 
 // ===== 地図中心で場所追加 =====
