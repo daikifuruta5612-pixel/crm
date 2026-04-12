@@ -550,19 +550,18 @@ window._initMap=function(){
     gestureHandling:'greedy',zoomControl:false
   });
 
-  // ===== PC: 長押し登録 =====
-  let pcTimer;
-  state.map.addListener('mousedown',e=>{
-    pcTimer=setTimeout(()=>addAtLatLng(e.latLng.lat(),e.latLng.lng()),700);
-  });
-  state.map.addListener('mouseup',()=>clearTimeout(pcTimer));
-  state.map.addListener('dragstart',()=>clearTimeout(pcTimer));
-
-  // ===== スマホ長押し =====
-  // longpressイベントはピンチ時にも発火するケースがあるため使用しない
-  // スマホは「＋」ボタン（現在地に追加）を使用
-  // PCのみ長押しに対応
-  
+  // ===== PC のみ: マウス長押しで登録 =====
+  // スマホでは mousedown も発火するため、タッチデバイスは完全除外
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (!isTouchDevice) {
+    let pcTimer;
+    state.map.addListener('mousedown',e=>{
+      pcTimer=setTimeout(()=>addAtLatLng(e.latLng.lat(),e.latLng.lng()),700);
+    });
+    state.map.addListener('mouseup',()=>clearTimeout(pcTimer));
+    state.map.addListener('dragstart',()=>clearTimeout(pcTimer));
+  }
+  // スマホは右下「＋」ボタンで現在地に追加（ピンチ誤作動ゼロ）
 
   updateMarkers();
   goToCurrentLocation();
