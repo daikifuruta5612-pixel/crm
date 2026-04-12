@@ -63,6 +63,18 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .map-btn.primary{background:var(--primary);border-color:var(--primary)}
 .ripple{position:fixed;width:56px;height:56px;border-radius:50%;background:rgba(37,99,235,.25);border:2px solid var(--primary);transform:translate(-50%,-50%) scale(0);transition:transform .6s,opacity .6s;pointer-events:none;z-index:9999;opacity:0}
 .ripple.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+/* 地図中心十字線 */
+.map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:10;display:none}
+.map-crosshair.active{display:block}
+.map-crosshair::before,.map-crosshair::after{content:'';position:absolute;background:var(--primary)}
+.map-crosshair::before{width:2px;height:40px;top:-20px;left:-1px}
+.map-crosshair::after{width:40px;height:2px;top:-1px;left:-20px}
+.map-crosshair-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);position:absolute;top:-4px;left:-4px;box-shadow:0 0 0 3px rgba(37,99,235,.25)}
+/* ここに追加バー */
+.map-add-bar{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:15;display:none;gap:8px}
+.map-add-bar.active{display:flex}
+.map-add-confirm{padding:12px 24px;border-radius:var(--radius-full);border:none;background:var(--primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(37,99,235,.4);white-space:nowrap}
+.map-add-cancel{padding:12px 20px;border-radius:var(--radius-full);border:none;background:var(--card);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.15)}
 
 /* ===== LIST PANEL ===== */
 .list-panel{position:absolute;top:0;bottom:0;left:0;width:min(320px,100%);background:var(--card);box-shadow:4px 0 16px rgba(0,0,0,.12);display:none;flex-direction:column;z-index:15}
@@ -205,6 +217,15 @@ textarea.form-input{height:70px;resize:none}
 <!-- MAP -->
 <div class="page active" id="page-map">
   <div id="mapEl"></div>
+  <!-- 地図中心十字線 -->
+  <div class="map-crosshair" id="mapCrosshair">
+    <div class="map-crosshair-dot"></div>
+  </div>
+  <!-- ここに追加バー -->
+  <div class="map-add-bar" id="mapAddBar">
+    <button class="map-add-cancel" onclick="cancelMapAdd()">キャンセル</button>
+    <button class="map-add-confirm" onclick="confirmMapAdd()">ここに追加</button>
+  </div>
   <div class="map-filters">
     <button class="map-chip all active" onclick="setMapFilter('all',this)">全て</button>
     <button class="map-chip hot" onclick="setMapFilter('hot',this)">ホット</button>
@@ -215,6 +236,9 @@ textarea.form-input{height:70px;resize:none}
   <div class="map-ctrls">
     <button class="map-btn primary" onclick="addAtCurrentLocation()" title="現在地に追加">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+    <button class="map-btn" onclick="startMapAdd()" title="地図上の場所に追加" id="mapAddBtn" style="border-color:#8b5cf6">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="14" x2="12" y2="18" style="display:none"/><circle cx="12" cy="10" r="3"/><line x1="9" y1="1" x2="15" y2="1"/></svg>
     </button>
     <button class="map-btn" onclick="goToCurrentLocation()" title="現在地" style="border-color:#2563eb">
       <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="3" fill="#2563eb"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
@@ -770,6 +794,26 @@ function addAtCurrentLocation(){
   if(!navigator.geolocation){alert('位置情報が使えません');return}
   toast('現在地を取得中...');
   navigator.geolocation.getCurrentPosition(p=>addAtLatLng(p.coords.latitude,p.coords.longitude),()=>toast('位置情報の取得に失敗しました'));
+}
+
+// ===== 地図中心で場所追加 =====
+function startMapAdd(){
+  // 十字線と確認バーを表示
+  document.getElementById('mapCrosshair').classList.add('active');
+  document.getElementById('mapAddBar').classList.add('active');
+  document.getElementById('mapAddBtn').style.background='#ede9fe';
+  toast('地図をスクロールして追加したい場所を中心に合わせてください');
+}
+function cancelMapAdd(){
+  document.getElementById('mapCrosshair').classList.remove('active');
+  document.getElementById('mapAddBar').classList.remove('active');
+  document.getElementById('mapAddBtn').style.background='';
+}
+function confirmMapAdd(){
+  if(!state.map)return;
+  const center=state.map.getCenter();
+  cancelMapAdd();
+  addAtLatLng(center.lat(),center.lng());
 }
 
 function cleanAddress(fa){
