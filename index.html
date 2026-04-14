@@ -68,6 +68,36 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .map-btn.primary{background:var(--primary);border-color:var(--primary)}
 .ripple{position:fixed;width:56px;height:56px;border-radius:50%;background:rgba(37,99,235,.25);border:2px solid var(--primary);transform:translate(-50%,-50%) scale(0);transition:transform .6s,opacity .6s;pointer-events:none;z-index:9999;opacity:0}
 .ripple.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+/* コンパス */
+.map-compass{position:absolute;top:110px;right:14px;width:44px;height:44px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.14);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;transition:background .2s}
+.map-compass:active{transform:scale(.92)}
+.map-compass.heading{background:#fff3e0;border-color:#f59e0b}
+.compass-needle{transition:transform .3s ease}
+/* 追従モードバー */
+.track-bar{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--primary);color:#fff;padding:10px 20px;border-radius:var(--radius-full);font-size:13px;font-weight:600;display:none;align-items:center;gap:8px;z-index:20;box-shadow:0 4px 16px rgba(37,99,235,.4);white-space:nowrap;pointer-events:none}
+.track-bar.active{display:flex}
+.track-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+/* 巡回パネル */
+.tour-panel{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.15);z-index:20;transform:translateY(100%);transition:transform .3s ease;max-height:70vh;display:flex;flex-direction:column}
+.tour-panel.open{transform:translateY(0)}
+.tour-panel-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.tour-panel-title{font-weight:700;font-size:15px;flex:1}
+.tour-panel-body{overflow-y:auto;flex:1;padding:8px 12px}
+.tour-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);cursor:pointer}
+.tour-item:active{background:var(--bg);border-radius:var(--radius-sm)}
+.tour-num{width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tour-num.done{background:#22c55e}
+.tour-num.current{background:#f59e0b;animation:pulse 1.2s infinite}
+.tour-item-info{flex:1;min-width:0}
+.tour-item-name{font-weight:600;font-size:14px}
+.tour-item-sub{font-size:12px;color:var(--text-sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tour-panel-footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+/* クイック訪問ボタン */
+.quick-visit{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);z-index:20;display:none}
+.quick-visit.active{display:block}
+.quick-visit-btn{padding:14px 28px;border-radius:var(--radius-full);border:none;background:#22c55e;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.45);white-space:nowrap;display:flex;align-items:center;gap:8px}
+.quick-visit-btn svg{width:18px;height:18px}
 /* 地図中心十字線 */
 .map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:10;display:none}
 .map-crosshair.active{display:block}
@@ -251,22 +281,65 @@ textarea.form-input{height:70px;resize:none}
       <button class="map-chip cold" onclick="setMapFilter('cold',this)" style="pointer-events:auto">コールド</button>
     </div>
   </div>
+  <!-- コンパス -->
+  <div class="map-compass" id="mapCompass" onclick="toggleCompass()" title="コンパス">
+    <svg width="28" height="28" viewBox="0 0 28 28" id="compassSvg">
+      <circle cx="14" cy="14" r="12" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+      <g class="compass-needle" id="compassNeedle">
+        <!-- 北（赤） -->
+        <polygon points="14,4 11,14 14,12 17,14" fill="#ef4444"/>
+        <!-- 南（グレー） -->
+        <polygon points="14,24 11,14 14,16 17,14" fill="#94a3b8"/>
+      </g>
+      <circle cx="14" cy="14" r="2" fill="#1e293b"/>
+      <text x="14" y="3" text-anchor="middle" font-size="5" font-weight="700" fill="#ef4444">N</text>
+    </svg>
+  </div>
+  <!-- 現在地追従中バー -->
+  <div class="track-bar" id="trackBar">
+    <span class="track-dot"></span>現在地追従中
+  </div>
+  <!-- クイック訪問ボタン -->
+  <div class="quick-visit" id="quickVisit">
+    <button class="quick-visit-btn" onclick="quickVisitComplete()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      訪問完了を記録
+    </button>
+  </div>
   <div class="map-ctrls">
     <button class="map-btn primary" onclick="addAtCurrentLocation()" title="現在地に追加">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
     <button class="map-btn" onclick="startMapAdd()" title="地図上の場所に追加" id="mapAddBtn" style="border-color:#8b5cf6">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="14" x2="12" y2="18" style="display:none"/><circle cx="12" cy="10" r="3"/><line x1="9" y1="1" x2="15" y2="1"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/><line x1="12" y1="2" x2="12" y2="7"/></svg>
     </button>
-    <button class="map-btn" onclick="goToCurrentLocation()" title="現在地" style="border-color:#2563eb">
+    <button class="map-btn" onclick="toggleTracking()" title="現在地追従" id="trackBtn" style="border-color:#2563eb">
       <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="3" fill="#2563eb"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
     </button>
     <button class="map-btn" onclick="toggleAllBubbles()" title="全吹き出し" style="border-color:#f59e0b" id="bubbleBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     </button>
+    <button class="map-btn" onclick="toggleTourPanel()" title="巡回リスト" style="border-color:#22c55e">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    </button>
     <button class="map-btn" onclick="toggleListPanel()" title="一覧" style="border-color:#8b5cf6">
       <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="12" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="18" r="1.5" fill="#8b5cf6" stroke="none"/></svg>
     </button>
+  </div>
+  <!-- 巡回パネル -->
+  <div class="tour-panel" id="tourPanel">
+    <div class="tour-panel-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <span class="tour-panel-title">本日の巡回リスト</span>
+      <button class="icon-btn" onclick="toggleTourPanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="tour-panel-body" id="tourBody"></div>
+    <div class="tour-panel-footer">
+      <button class="list-btn" style="background:var(--primary);color:#fff;flex:2" onclick="startTour()">巡回開始</button>
+      <button class="list-btn import" style="flex:1" onclick="clearTour()">リセット</button>
+    </div>
   </div>
   <!-- LIST PANEL -->
   <div class="list-panel" id="listPanel">
@@ -423,6 +496,9 @@ textarea.form-input{height:70px;resize:none}
       <button class="action-btn" onclick="editCustomer()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>編集
       </button>
+      <button class="action-btn" onclick="addToTour(state.detailId);closeDetail()" style="color:#22c55e;border-color:#86efac">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>巡回追加
+      </button>
       <button class="action-btn" id="calBtn" style="display:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>カレンダー
       </button>
@@ -463,7 +539,7 @@ window.dispatchEvent(new Event('fbReady'));
 /* ===== STATE ===== */
 const state={
   customers:[],histories:[],
-  histMap:new Map(),   // customerId -> histories[] (ソート済み) O(1)参照用
+  histMap:new Map(),
   custFilter:'all',mapFilter:'all',
   tab:'map',detailId:null,
   editCustId:null,editHistId:null,
@@ -471,7 +547,16 @@ const state={
   map:null,markers:{},infoWindows:{},
   myLocMarker:null,myLocRing:null,
   mapLoaded:false,
-  deletingIds:{}
+  deletingIds:{},
+  // 追従・コンパス
+  tracking:false,          // 現在地追従モード
+  watchId:null,            // geolocation.watchPosition ID
+  compassMode:'north',     // 'north'=真北固定 / 'heading'=進行方向
+  deviceHeading:0,         // デバイスの向き（度）
+  // 巡回
+  tourList:[],             // 巡回順の顧客IDリスト
+  tourIndex:0,             // 現在の巡回インデックス
+  tourActive:false         // 巡回中フラグ
 };
 
 // histMapを再構築（historiesが更新されるたびに呼ぶ）
@@ -750,16 +835,221 @@ function setMapFilter(f,el){
   updateMarkers();renderListPanel();
 }
 
+function updateMyLocationMarker(ll){
+  if(state.myLocMarker)state.myLocMarker.setMap(null);
+  if(state.myLocRing)state.myLocRing.setMap(null);
+  state.myLocRing=new google.maps.Marker({position:ll,map:state.map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:22,fillColor:'#4285F4',fillOpacity:.15,strokeColor:'#4285F4',strokeWeight:1.5},zIndex:998});
+  state.myLocMarker=new google.maps.Marker({position:ll,map:state.map,title:'現在地',icon:{path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:'#4285F4',fillOpacity:1,strokeColor:'#fff',strokeWeight:3},zIndex:999});
+}
+
 function goToCurrentLocation(){
   if(!navigator.geolocation||!state.map)return;
   navigator.geolocation.getCurrentPosition(p=>{
     const ll={lat:p.coords.latitude,lng:p.coords.longitude};
     state.map.panTo(ll);
-    if(state.myLocMarker)state.myLocMarker.setMap(null);
-    if(state.myLocRing)state.myLocRing.setMap(null);
-    state.myLocRing=new google.maps.Marker({position:ll,map:state.map,icon:{path:google.maps.SymbolPath.CIRCLE,scale:22,fillColor:'#4285F4',fillOpacity:.15,strokeColor:'#4285F4',strokeWeight:1.5},zIndex:998});
-    state.myLocMarker=new google.maps.Marker({position:ll,map:state.map,title:'現在地',icon:{path:google.maps.SymbolPath.CIRCLE,scale:10,fillColor:'#4285F4',fillOpacity:1,strokeColor:'#fff',strokeWeight:3},zIndex:999});
+    updateMyLocationMarker(ll);
   });
+}
+
+// ===== 現在地追従モード =====
+function toggleTracking(){
+  state.tracking=!state.tracking;
+  const btn=document.getElementById('trackBtn');
+  const bar=document.getElementById('trackBar');
+  if(state.tracking){
+    btn.style.background='#dbeafe';
+    bar.classList.add('active');
+    toast('現在地追従をONにしました');
+    // watchPositionで継続的に位置取得
+    if(state.watchId)navigator.geolocation.clearWatch(state.watchId);
+    state.watchId=navigator.geolocation.watchPosition(p=>{
+      const ll={lat:p.coords.latitude,lng:p.coords.longitude};
+      updateMyLocationMarker(ll);
+      if(state.tracking)state.map.panTo(ll);
+      // 巡回中なら近くの次の顧客を確認
+      if(state.tourActive)checkTourArrival(ll);
+    },{enableHighAccuracy:true,maximumAge:3000});
+    // コンパスのためのデバイス向き取得
+    startCompass();
+  }else{
+    btn.style.background='';
+    bar.classList.remove('active');
+    if(state.watchId){navigator.geolocation.clearWatch(state.watchId);state.watchId=null;}
+    stopCompass();
+    toast('現在地追従をOFFにしました');
+  }
+}
+
+// ===== コンパス =====
+function toggleCompass(){
+  state.compassMode = state.compassMode==='north' ? 'heading' : 'north';
+  const el=document.getElementById('mapCompass');
+  const needle=document.getElementById('compassNeedle');
+  if(state.compassMode==='heading'){
+    el.classList.add('heading');
+    el.title='進行方向モード（タップで真北へ）';
+    toast('進行方向モードに切替えました');
+  }else{
+    el.classList.remove('heading');
+    needle.style.transform='rotate(0deg)';
+    el.title='真北モード（タップで進行方向へ）';
+    // 地図も真北に戻す
+    state.map.setHeading(0);
+    toast('真北モードに切替えました');
+  }
+}
+
+function startCompass(){
+  if(typeof DeviceOrientationEvent==='undefined')return;
+  // iOS13以降は許可が必要
+  if(typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission().then(r=>{
+      if(r==='granted') window.addEventListener('deviceorientation',onOrientation,true);
+    }).catch(()=>{});
+  }else{
+    window.addEventListener('deviceorientation',onOrientation,true);
+  }
+}
+function stopCompass(){
+  window.removeEventListener('deviceorientation',onOrientation,true);
+}
+function onOrientation(e){
+  // alpha=コンパス方位（0=北、時計回り）
+  const heading = e.webkitCompassHeading || (e.alpha ? (360 - e.alpha) : 0);
+  state.deviceHeading=heading;
+  const needle=document.getElementById('compassNeedle');
+  if(needle) needle.style.transform='rotate('+heading+'deg)';
+  // 進行方向モードのとき地図を回転
+  if(state.compassMode==='heading'&&state.map){
+    state.map.setHeading(heading);
+  }
+}
+
+// ===== 巡回リスト =====
+function toggleTourPanel(){
+  const p=document.getElementById('tourPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open'))renderTourPanel();
+}
+
+function renderTourPanel(){
+  const body=document.getElementById('tourBody');
+  if(!state.tourList.length){
+    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-sub);font-size:13px;">'
+      +'顧客詳細画面の「巡回追加」ボタンでリストに追加できます</div>';
+    return;
+  }
+  body.innerHTML=state.tourList.map((id,i)=>{
+    const c=state.customers.find(x=>x.id===id);
+    if(!c)return'';
+    const isDone=i<state.tourIndex;
+    const isCurrent=state.tourActive&&i===state.tourIndex;
+    const lh=getLatest(id);
+    return '<div class="tour-item" onclick="focusTourItem(''+id+'','+i+')">'
+      +'<div class="tour-num'+(isDone?' done':isCurrent?' current':'')+'">'
+      +(isDone?'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>':i+1)
+      +'</div>'
+      +'<div class="tour-item-info">'
+      +'<div class="tour-item-name">'+c.name+'</div>'
+      +'<div class="tour-item-sub">'+(c.address||'住所なし')+'</div>'
+      +(lh?'<div class="tour-item-sub">最終: '+lh.date+' '+TYPE_LABEL[lh.type]+'</div>':'')
+      +'</div>'
+      +'<button onclick="removeTourItem(''+id+'',event)" style="background:none;border:none;color:var(--text-sub);cursor:pointer;padding:4px;flex-shrink:0">'
+      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      +'</button>'
+      +'</div>';
+  }).join('');
+}
+
+function addToTour(customerId){
+  if(state.tourList.includes(customerId)){toast('すでに巡回リストにあります');return;}
+  state.tourList.push(customerId);
+  const c=state.customers.find(x=>x.id===customerId);
+  toast((c?.name||'顧客')+'を巡回リストに追加しました');
+}
+
+function removeTourItem(id,e){
+  e.stopPropagation();
+  state.tourList=state.tourList.filter(x=>x!==id);
+  if(state.tourIndex>=state.tourList.length)state.tourIndex=Math.max(0,state.tourList.length-1);
+  renderTourPanel();
+}
+
+function clearTour(){
+  if(!confirm('巡回リストをリセットしますか？'))return;
+  state.tourList=[];state.tourIndex=0;state.tourActive=false;
+  document.getElementById('quickVisit').classList.remove('active');
+  renderTourPanel();
+}
+
+function startTour(){
+  if(!state.tourList.length){toast('巡回リストが空です');return;}
+  state.tourIndex=0;state.tourActive=true;
+  toggleTourPanel();
+  goToTourTarget();
+  toast('巡回を開始しました');
+}
+
+function goToTourTarget(){
+  if(!state.tourActive||state.tourIndex>=state.tourList.length){
+    state.tourActive=false;
+    document.getElementById('quickVisit').classList.remove('active');
+    toast('巡回が完了しました！お疲れ様でした');
+    return;
+  }
+  const id=state.tourList[state.tourIndex];
+  const c=state.customers.find(x=>x.id===id);
+  if(!c)return;
+  // 地図をその顧客にフォーカス
+  focusPin(id);
+  // クイック訪問ボタンを表示
+  document.getElementById('quickVisit').classList.add('active');
+  toast((state.tourIndex+1)+'/'+state.tourList.length+' '+c.name+'へ移動中');
+}
+
+function focusTourItem(id,index){
+  state.tourIndex=index;
+  focusPin(id);
+}
+
+function checkTourArrival(ll){
+  if(!state.tourActive)return;
+  const id=state.tourList[state.tourIndex];
+  const c=state.customers.find(x=>x.id===id);
+  if(!c||c.lat==null)return;
+  // 50m以内に近づいたら通知
+  const d=getDistanceM(ll.lat,ll.lng,c.lat,c.lng);
+  if(d<50) toast('到着しました：'+c.name);
+}
+
+function getDistanceM(lat1,lng1,lat2,lng2){
+  const R=6371000;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ===== クイック訪問完了 =====
+function quickVisitComplete(){
+  if(!state.tourActive)return;
+  const id=state.tourList[state.tourIndex];
+  const c=state.customers.find(x=>x.id===id);
+  if(!c)return;
+  const now=new Date();
+  // 訪問履歴を即座に保存
+  addH({
+    customerId:id,
+    type:'visit',
+    date:now.toISOString().split('T')[0],
+    time:now.toTimeString().slice(0,5),
+    note:'巡回訪問',
+    statusChange:null
+  });
+  toast(c.name+'の訪問を記録しました');
+  // 次の顧客へ
+  state.tourIndex++;
+  goToTourTarget();
 }
 
 function toggleAllBubbles(){
