@@ -945,7 +945,7 @@ function renderTourPanel(){
     const isDone=i<state.tourIndex;
     const isCurrent=state.tourActive&&i===state.tourIndex;
     const lh=getLatest(id);
-    return '<div class="tour-item" onclick="focusTourItem(''+id+'','+i+')">'
+    return '<div class="tour-item" onclick="focusTourItem(\''+id+'\','+i+')">'
       +'<div class="tour-num'+(isDone?' done':isCurrent?' current':'')+'">'
       +(isDone?'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>':i+1)
       +'</div>'
@@ -954,7 +954,7 @@ function renderTourPanel(){
       +'<div class="tour-item-sub">'+(c.address||'住所なし')+'</div>'
       +(lh?'<div class="tour-item-sub">最終: '+lh.date+' '+TYPE_LABEL[lh.type]+'</div>':'')
       +'</div>'
-      +'<button onclick="removeTourItem(''+id+'',event)" style="background:none;border:none;color:var(--text-sub);cursor:pointer;padding:4px;flex-shrink:0">'
+      +'<button onclick="removeTourItem(\''+id+'\',event)" style="background:none;border:none;color:var(--text-sub);cursor:pointer;padding:4px;flex-shrink:0">'
       +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
       +'</button>'
       +'</div>';
