@@ -674,7 +674,10 @@ window._initMap=function(){
   state.map=new google.maps.Map(document.getElementById('mapEl'),{
     center:{lat:35.6812,lng:139.7671},zoom:17,
     mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
-    gestureHandling:'greedy',zoomControl:false
+    gestureHandling:'greedy',zoomControl:false,
+    rotateControl:false,   // 独自コンパスを使うのでGoogleのは非表示
+    heading:0,             // 地図の回転を有効化（これがないとsetHeadingが効かない）
+    tilt:0                 // 3D傾きなし
   });
 
   // ===== PC のみ: マウス長押しで登録 =====
@@ -692,6 +695,8 @@ window._initMap=function(){
 
   updateMarkers();
   goToCurrentLocation();
+  // 起動時から進行方向モードで開始
+  autoStartCompass();
 };
 
 (function loadMaps(){
@@ -859,70 +864,128 @@ function toggleTracking(){
   if(state.tracking){
     btn.style.background='#dbeafe';
     bar.classList.add('active');
+    if(!navigator.geolocation){
+      toast('位置情報が使えません');
+      state.tracking=false;
+      btn.style.background='';
+      bar.classList.remove('active');
+      return;
+    }
     toast('現在地追従をONにしました');
-    // watchPositionで継続的に位置取得
     if(state.watchId)navigator.geolocation.clearWatch(state.watchId);
-    state.watchId=navigator.geolocation.watchPosition(p=>{
-      const ll={lat:p.coords.latitude,lng:p.coords.longitude};
-      updateMyLocationMarker(ll);
-      if(state.tracking)state.map.panTo(ll);
-      // 巡回中なら近くの次の顧客を確認
-      if(state.tourActive)checkTourArrival(ll);
-    },{enableHighAccuracy:true,maximumAge:3000});
-    // コンパスのためのデバイス向き取得
-    startCompass();
+    state.watchId=navigator.geolocation.watchPosition(
+      p=>{
+        const ll={lat:p.coords.latitude,lng:p.coords.longitude};
+        updateMyLocationMarker(ll);
+        if(state.tracking)state.map.panTo(ll);
+        if(state.tourActive)checkTourArrival(ll);
+      },
+      err=>{
+        toast('位置情報の取得に失敗しました（設定を確認してください）');
+        state.tracking=false;
+        btn.style.background='';
+        bar.classList.remove('active');
+      },
+      {enableHighAccuracy:true,maximumAge:3000,timeout:10000}
+    );
   }else{
     btn.style.background='';
     bar.classList.remove('active');
     if(state.watchId){navigator.geolocation.clearWatch(state.watchId);state.watchId=null;}
-    stopCompass();
     toast('現在地追従をOFFにしました');
   }
 }
 
 // ===== コンパス =====
 function toggleCompass(){
-  state.compassMode = state.compassMode==='north' ? 'heading' : 'north';
   const el=document.getElementById('mapCompass');
   const needle=document.getElementById('compassNeedle');
-  if(state.compassMode==='heading'){
-    el.classList.add('heading');
-    el.title='進行方向モード（タップで真北へ）';
-    toast('進行方向モードに切替えました');
+
+  function applyMode(){
+    if(state.compassMode==='heading'){
+      // 真北に戻す
+      state.compassMode='north';
+      el.classList.remove('heading');
+      if(needle)needle.style.transform='rotate(0deg)';
+      window.removeEventListener('deviceorientation',onOrientation,true);
+      if(state.map)state.map.setHeading(0);
+      toast('真北モードに切替えました');
+    }else{
+      // 進行方向モード開始
+      state.compassMode='heading';
+      el.classList.add('heading');
+      window.addEventListener('deviceorientation',onOrientation,true);
+      toast('進行方向モード ON');
+    }
+  }
+
+  // iOS13以降はユーザー操作直後にrequestPermissionが必要
+  if(typeof DeviceOrientationEvent!=='undefined'&&
+     typeof DeviceOrientationEvent.requestPermission==='function'){
+    DeviceOrientationEvent.requestPermission()
+      .then(r=>{
+        if(r==='granted'){
+          applyMode();
+        }else{
+          toast('コンパスの許可が必要です（設定→Safari→モーションと方向）');
+        }
+      })
+      .catch(()=>applyMode());
   }else{
-    el.classList.remove('heading');
-    needle.style.transform='rotate(0deg)';
-    el.title='真北モード（タップで進行方向へ）';
-    // 地図も真北に戻す
-    state.map.setHeading(0);
-    toast('真北モードに切替えました');
+    applyMode();
   }
 }
 
-function startCompass(){
-  if(typeof DeviceOrientationEvent==='undefined')return;
-  // iOS13以降は許可が必要
-  if(typeof DeviceOrientationEvent.requestPermission==='function'){
-    DeviceOrientationEvent.requestPermission().then(r=>{
-      if(r==='granted') window.addEventListener('deviceorientation',onOrientation,true);
-    }).catch(()=>{});
-  }else{
-    window.addEventListener('deviceorientation',onOrientation,true);
-  }
-}
-function stopCompass(){
-  window.removeEventListener('deviceorientation',onOrientation,true);
-}
 function onOrientation(e){
-  // alpha=コンパス方位（0=北、時計回り）
-  const heading = e.webkitCompassHeading || (e.alpha ? (360 - e.alpha) : 0);
+  let heading=0;
+  if(e.webkitCompassHeading!=null&&e.webkitCompassHeading!==0){
+    heading=e.webkitCompassHeading; // iOS（最も正確）
+  }else if(e.alpha!=null){
+    heading=(360-e.alpha+360)%360;  // Android
+  }else{
+    return; // データなし
+  }
+
+  // 平滑化（前回値と補間してガタつきを減らす）
+  if(state.deviceHeading==null) state.deviceHeading=heading;
+  let diff=heading-state.deviceHeading;
+  if(diff>180) diff-=360;
+  if(diff<-180) diff+=360;
+  heading=state.deviceHeading+diff*0.3; // 30%ずつ近づける
   state.deviceHeading=heading;
+
+  // コンパス針を回転（針が現在の向きを指す）
   const needle=document.getElementById('compassNeedle');
-  if(needle) needle.style.transform='rotate('+heading+'deg)';
+  if(needle) needle.style.transform='rotate('+(heading)+'deg)';
+
   // 進行方向モードのとき地図を回転
   if(state.compassMode==='heading'&&state.map){
     state.map.setHeading(heading);
   }
+}
+
+function startCompass(){} // 後方互換のため残す
+function stopCompass(){
+  window.removeEventListener('deviceorientation',onOrientation,true);
+}
+
+// 起動時に自動でコンパスを進行方向モードで開始
+function autoStartCompass(){
+  state.compassMode='heading';
+  const el=document.getElementById('mapCompass');
+  if(el)el.classList.add('heading');
+
+  function beginListening(){
+    window.addEventListener('deviceorientation',onOrientation,true);
+  }
+  // iOS13以降は許可が必要
+  if(typeof DeviceOrientationEvent!=='undefined'&&
+     typeof DeviceOrientationEvent.requestPermission==='function'){
+    // 起動時は自動許可できないため、コンパスタップ時まで待つ
+    // compassModeだけheadingにしておき、許可はtoggleCompassで行う
+    return;
+  }
+  beginListening();
 }
 
 // ===== 巡回リスト =====
