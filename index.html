@@ -572,11 +572,11 @@ window.startSync = function startSync(){
     rebuildHistMap();
     renderAll();
   });
-  // フォールバック: 3秒後に強制的にローディングを非表示
+  // フォールバック: 0.5秒後に強制的にローディングを非表示
   setTimeout(()=>{
     const el=document.getElementById('loading');
     if(el)el.classList.add('hidden');
-  },3000);
+  },500);
 }
 
 /* ===== RENDER ALL ===== */
