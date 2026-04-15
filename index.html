@@ -69,10 +69,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .ripple{position:fixed;width:56px;height:56px;border-radius:50%;background:rgba(37,99,235,.25);border:2px solid var(--primary);transform:translate(-50%,-50%) scale(0);transition:transform .6s,opacity .6s;pointer-events:none;z-index:9999;opacity:0}
 .ripple.show{transform:translate(-50%,-50%) scale(1);opacity:1}
 /* コンパス */
-.map-compass{position:absolute;top:110px;right:14px;width:44px;height:44px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.14);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;transition:background .2s}
-.map-compass:active{transform:scale(.92)}
-.map-compass.heading{background:#fff3e0;border-color:#f59e0b}
-.compass-needle{transition:transform .3s ease}
+.compass-needle{transition:transform .25s ease-out;transform-origin:center center}
 /* 追従モードバー */
 .track-bar{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--primary);color:#fff;padding:10px 20px;border-radius:var(--radius-full);font-size:13px;font-weight:600;display:none;align-items:center;gap:8px;z-index:20;box-shadow:0 4px 16px rgba(37,99,235,.4);white-space:nowrap;pointer-events:none}
 .track-bar.active{display:flex}
@@ -281,19 +278,27 @@ textarea.form-input{height:70px;resize:none}
       <button class="map-chip cold" onclick="setMapFilter('cold',this)" style="pointer-events:auto">コールド</button>
     </div>
   </div>
-  <!-- コンパス -->
-  <div class="map-compass" id="mapCompass" onclick="toggleCompass()" title="コンパス">
-    <svg width="28" height="28" viewBox="0 0 28 28" id="compassSvg">
-      <circle cx="14" cy="14" r="12" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
-      <g class="compass-needle" id="compassNeedle">
-        <!-- 北（赤） -->
-        <polygon points="14,4 11,14 14,12 17,14" fill="#ef4444"/>
-        <!-- 南（グレー） -->
-        <polygon points="14,24 11,14 14,16 17,14" fill="#94a3b8"/>
+  <!-- コンパス（右上・独立・正円・大きめ） -->
+  <div id="mapCompass" onclick="toggleCompass()" title="タップで真北/進行方向を切替え"
+    style="position:absolute;top:70px;right:14px;width:72px;height:72px;border-radius:50%;
+           background:rgba(255,255,255,0.95);border:2px solid #e2e8f0;
+           box-shadow:0 3px 14px rgba(0,0,0,0.22);display:flex;flex-direction:column;
+           align-items:center;justify-content:center;cursor:pointer;z-index:15;
+           transition:background .2s, border-color .2s;gap:2px;flex-shrink:0;">
+    <svg width="52" height="52" viewBox="0 0 52 52" id="compassSvg" style="display:block">
+      <circle cx="26" cy="26" r="24" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="26" y="8"  text-anchor="middle" font-size="8" font-weight="800" fill="#ef4444" font-family="-apple-system,sans-serif">N</text>
+      <text x="26" y="50" text-anchor="middle" font-size="7" fill="#94a3b8" font-family="-apple-system,sans-serif">S</text>
+      <text x="5"  y="29" text-anchor="middle" font-size="7" fill="#94a3b8" font-family="-apple-system,sans-serif">W</text>
+      <text x="47" y="29" text-anchor="middle" font-size="7" fill="#94a3b8" font-family="-apple-system,sans-serif">E</text>
+      <g id="compassNeedle" style="transform-origin:26px 26px;transition:transform .25s ease-out">
+        <polygon points="26,9 23,26 26,23 29,26" fill="#ef4444"/>
+        <polygon points="26,43 23,26 26,29 29,26" fill="#94a3b8"/>
       </g>
-      <circle cx="14" cy="14" r="2" fill="#1e293b"/>
-      <text x="14" y="3" text-anchor="middle" font-size="5" font-weight="700" fill="#ef4444">N</text>
+      <circle cx="26" cy="26" r="3.5" fill="#1e293b"/>
+      <circle cx="26" cy="26" r="1.8" fill="#fff"/>
     </svg>
+    <span id="compassLabel" style="font-size:9px;font-weight:700;color:#64748b;line-height:1;margin-top:-2px">真北</span>
   </div>
   <!-- 現在地追従中バー -->
   <div class="track-bar" id="trackBar">
@@ -675,9 +680,6 @@ window._initMap=function(){
     center:{lat:35.6812,lng:139.7671},zoom:17,
     mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
     gestureHandling:'greedy',zoomControl:false,
-    rotateControl:false,   // 独自コンパスを使うのでGoogleのは非表示
-    heading:0,             // 地図の回転を有効化（これがないとsetHeadingが効かない）
-    tilt:0                 // 3D傾きなし
   });
 
   // ===== PC のみ: マウス長押しで登録 =====
@@ -902,20 +904,23 @@ function toggleCompass(){
   const needle=document.getElementById('compassNeedle');
 
   function applyMode(){
+    const lbl=document.getElementById('compassLabel');
     if(state.compassMode==='heading'){
       // 真北に戻す
       state.compassMode='north';
       el.classList.remove('heading');
       if(needle)needle.style.transform='rotate(0deg)';
       window.removeEventListener('deviceorientation',onOrientation,true);
-      if(state.map)state.map.setHeading(0);
+      if(lbl)lbl.textContent='真北';
       toast('真北モードに切替えました');
     }else{
       // 進行方向モード開始
       state.compassMode='heading';
-      el.classList.add('heading');
+      el.style.background='rgba(255,243,224,0.97)';
+      el.style.borderColor='#f59e0b';
       window.addEventListener('deviceorientation',onOrientation,true);
-      toast('進行方向モード ON');
+      if(lbl)lbl.textContent='方向';
+      toast('進行方向モード ON（コンパス針がデバイスの向きに合います）');
     }
   }
 
@@ -958,10 +963,7 @@ function onOrientation(e){
   const needle=document.getElementById('compassNeedle');
   if(needle) needle.style.transform='rotate('+(heading)+'deg)';
 
-  // 進行方向モードのとき地図を回転
-  if(state.compassMode==='heading'&&state.map){
-    state.map.setHeading(heading);
-  }
+  // ※地図自体の回転はブラウザAPIの制限で対応不可。針のみ回転。
 }
 
 function startCompass(){} // 後方互換のため残す
