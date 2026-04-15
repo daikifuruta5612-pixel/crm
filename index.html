@@ -782,6 +782,69 @@ function goToCurrentLocation(){
   });
 }
 
+function toggleAllBubbles(){
+  state.allBubbles=!state.allBubbles;
+  Object.entries(state.markers).forEach(([id,m])=>{
+    if(state.allBubbles)state.infoWindows[id]?.open(state.map,m);
+    else state.infoWindows[id]?.close();
+  });
+  document.getElementById('bubbleBtn').style.background=state.allBubbles?'#f59e0b20':'';
+  toast(state.allBubbles?'全吹き出しを表示':'全吹き出しを閉じました');
+}
+
+function toggleListPanel(){
+  const p=document.getElementById('listPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open'))renderListPanel();
+}
+
+function renderListPanel(){
+  const body=document.getElementById('listPanelBody');
+  if(!body)return;
+  const filtered=state.customers.filter(c=>state.mapFilter==='all'||c.status===state.mapFilter);
+  document.getElementById('listPanelTitle').textContent=`ピン一覧（${filtered.length}件）`;
+  if(!filtered.length){body.innerHTML='<div class="empty"><p>該当する顧客がいません</p></div>';return;}
+  body.innerHTML=filtered.map(c=>{
+    const lh=getLatest(c.id);
+    const sc=STATUS_COLOR[c.status]||'#2563eb';
+    return `<div class="list-item" onclick="focusPin('${c.id}')">
+      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="${sc}"/></svg>
+      <div class="list-item-info">
+        <div class="list-item-name">${c.name}</div>
+        ${c.address?`<div class="list-item-sub">${c.address}</div>`:''}
+        ${lh?`<div class="list-item-sub">${TYPE_LABEL[lh.type]||''} ${lh.date}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function focusPin(id){
+  const c=state.customers.find(x=>x.id===id);
+  if(!c||c.lat==null)return;
+  state.map?.panTo({lat:c.lat,lng:c.lng});
+  state.map?.setZoom(17);
+  if(state.infoWindows[id]&&state.markers[id])state.infoWindows[id].open(state.map,state.markers[id]);
+}
+
+// 地図中心で場所追加
+function startMapAdd(){
+  document.getElementById('mapCrosshair').classList.add('active');
+  document.getElementById('mapAddBar').classList.add('active');
+  document.getElementById('mapAddBtn').style.background='#ede9fe';
+  toast('地図をスクロールして追加したい場所を中心に合わせてください');
+}
+function cancelMapAdd(){
+  document.getElementById('mapCrosshair').classList.remove('active');
+  document.getElementById('mapAddBar').classList.remove('active');
+  document.getElementById('mapAddBtn').style.background='';
+}
+function confirmMapAdd(){
+  if(!state.map)return;
+  const center=state.map.getCenter();
+  cancelMapAdd();
+  addAtLatLng(center.lat(),center.lng());
+}
+
 // ===== 現在地追従モード =====
 function renderCustomers(){
   const el=document.getElementById('custList');
