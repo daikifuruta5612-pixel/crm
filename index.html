@@ -68,33 +68,20 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .map-btn.primary{background:var(--primary);border-color:var(--primary)}
 .ripple{position:fixed;width:56px;height:56px;border-radius:50%;background:rgba(37,99,235,.25);border:2px solid var(--primary);transform:translate(-50%,-50%) scale(0);transition:transform .6s,opacity .6s;pointer-events:none;z-index:9999;opacity:0}
 .ripple.show{transform:translate(-50%,-50%) scale(1);opacity:1}
-/* コンパス */
-.compass-needle{transition:transform .25s ease-out;transform-origin:center center}
-/* 追従モードバー */
-.track-bar{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--primary);color:#fff;padding:10px 20px;border-radius:var(--radius-full);font-size:13px;font-weight:600;display:none;align-items:center;gap:8px;z-index:20;box-shadow:0 4px 16px rgba(37,99,235,.4);white-space:nowrap;pointer-events:none}
-.track-bar.active{display:flex}
-.track-dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
 /* 巡回パネル */
-.tour-panel{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.15);z-index:20;transform:translateY(100%);transition:transform .3s ease;max-height:70vh;display:flex;flex-direction:column}
+.tour-panel{position:absolute;bottom:0;left:0;right:0;background:var(--card);border-radius:20px 20px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.15);z-index:20;transform:translateY(100%);transition:transform .3s ease;max-height:75vh;display:flex;flex-direction:column}
 .tour-panel.open{transform:translateY(0)}
 .tour-panel-header{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);flex-shrink:0}
 .tour-panel-title{font-weight:700;font-size:15px;flex:1}
 .tour-panel-body{overflow-y:auto;flex:1;padding:8px 12px}
-.tour-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border);cursor:pointer}
-.tour-item:active{background:var(--bg);border-radius:var(--radius-sm)}
+.tour-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-bottom:1px solid var(--border)}
 .tour-num{width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .tour-num.done{background:#22c55e}
-.tour-num.current{background:#f59e0b;animation:pulse 1.2s infinite}
 .tour-item-info{flex:1;min-width:0}
 .tour-item-name{font-weight:600;font-size:14px}
-.tour-item-sub{font-size:12px;color:var(--text-sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tour-panel-footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
-/* クイック訪問ボタン */
-.quick-visit{position:absolute;bottom:90px;left:50%;transform:translateX(-50%);z-index:20;display:none}
-.quick-visit.active{display:block}
-.quick-visit-btn{padding:14px 28px;border-radius:var(--radius-full);border:none;background:#22c55e;color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(34,197,94,.45);white-space:nowrap;display:flex;align-items:center;gap:8px}
-.quick-visit-btn svg{width:18px;height:18px}
+.tour-item-sub{font-size:12px;color:var(--text-sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tour-panel-footer{border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;flex-shrink:0}
+/* コンパス */
 /* 地図中心十字線 */
 .map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:10;display:none}
 .map-crosshair.active{display:block}
@@ -279,38 +266,6 @@ textarea.form-input{height:70px;resize:none}
     </div>
   </div>
   <!-- コンパス（右上・独立・正円・大きめ） -->
-  <div id="mapCompass" onclick="toggleCompass()" title="タップで真北/進行方向を切替え"
-    style="position:absolute;top:70px;right:14px;width:72px;height:72px;border-radius:50%;
-           background:rgba(255,255,255,0.95);border:2px solid #e2e8f0;
-           box-shadow:0 3px 14px rgba(0,0,0,0.22);display:flex;flex-direction:column;
-           align-items:center;justify-content:center;cursor:pointer;z-index:15;
-           transition:background .2s, border-color .2s;gap:2px;flex-shrink:0;">
-    <svg width="52" height="52" viewBox="0 0 52 52" id="compassSvg" style="display:block">
-      <circle cx="26" cy="26" r="24" fill="none" stroke="#e2e8f0" stroke-width="1"/>
-      <text x="26" y="8"  text-anchor="middle" font-size="8" font-weight="800" fill="#ef4444" font-family="-apple-system,sans-serif">N</text>
-      <text x="26" y="50" text-anchor="middle" font-size="7" fill="#94a3b8" font-family="-apple-system,sans-serif">S</text>
-      <text x="5"  y="29" text-anchor="middle" font-size="7" fill="#94a3b8" font-family="-apple-system,sans-serif">W</text>
-      <text x="47" y="29" text-anchor="middle" font-size="7" fill="#94a3b8" font-family="-apple-system,sans-serif">E</text>
-      <g id="compassNeedle" style="transform-origin:26px 26px;transition:transform .25s ease-out">
-        <polygon points="26,9 23,26 26,23 29,26" fill="#ef4444"/>
-        <polygon points="26,43 23,26 26,29 29,26" fill="#94a3b8"/>
-      </g>
-      <circle cx="26" cy="26" r="3.5" fill="#1e293b"/>
-      <circle cx="26" cy="26" r="1.8" fill="#fff"/>
-    </svg>
-    <span id="compassLabel" style="font-size:9px;font-weight:700;color:#64748b;line-height:1;margin-top:-2px">真北</span>
-  </div>
-  <!-- 現在地追従中バー -->
-  <div class="track-bar" id="trackBar">
-    <span class="track-dot"></span>現在地追従中
-  </div>
-  <!-- クイック訪問ボタン -->
-  <div class="quick-visit" id="quickVisit">
-    <button class="quick-visit-btn" onclick="quickVisitComplete()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      訪問完了を記録
-    </button>
-  </div>
   <div class="map-ctrls">
     <button class="map-btn primary" onclick="addAtCurrentLocation()" title="現在地に追加">
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -318,11 +273,12 @@ textarea.form-input{height:70px;resize:none}
     <button class="map-btn" onclick="startMapAdd()" title="地図上の場所に追加" id="mapAddBtn" style="border-color:#8b5cf6">
       <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/><line x1="12" y1="2" x2="12" y2="7"/></svg>
     </button>
-    <button class="map-btn" onclick="toggleTracking()" title="現在地追従" id="trackBtn" style="border-color:#2563eb">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="3" fill="#2563eb"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
-    </button>
+
     <button class="map-btn" onclick="toggleAllBubbles()" title="全吹き出し" style="border-color:#f59e0b" id="bubbleBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </button>
+    <button class="map-btn" onclick="toggleTourPanel()" title="巡回リスト" style="border-color:#22c55e">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
     </button>
     <button class="map-btn" onclick="toggleTourPanel()" title="巡回リスト" style="border-color:#22c55e">
       <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -331,33 +287,24 @@ textarea.form-input{height:70px;resize:none}
       <svg viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="12" r="1.5" fill="#8b5cf6" stroke="none"/><circle cx="3" cy="18" r="1.5" fill="#8b5cf6" stroke="none"/></svg>
     </button>
   </div>
+
   <!-- 巡回パネル -->
   <div class="tour-panel" id="tourPanel">
     <div class="tour-panel-header">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <span class="tour-panel-title">本日の巡回リスト</span>
+      <span class="tour-panel-title">巡回リスト</span>
+      <span id="tourCount" style="font-size:12px;color:var(--text-sub)"></span>
       <button class="icon-btn" onclick="toggleTourPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="tour-panel-body" id="tourBody"></div>
     <div class="tour-panel-footer">
-      <button class="list-btn" style="background:var(--primary);color:#fff;flex:2" onclick="startTour()">巡回開始</button>
-      <button class="list-btn import" style="flex:1" onclick="clearTour()">リセット</button>
-    </div>
-  </div>
-  <!-- LIST PANEL -->
-  <div class="list-panel" id="listPanel">
-    <div class="list-panel-header">
-      <span class="list-panel-title" id="listPanelTitle">ピン一覧</span>
-      <button class="icon-btn" onclick="toggleListPanel()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button class="list-btn" style="background:var(--primary);color:#fff;flex:2;border-radius:var(--radius-sm);cursor:pointer" onclick="openGoogleMapsRoute()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+        Googleマップでナビ
       </button>
-    </div>
-    <div class="list-panel-body" id="listPanelBody"></div>
-    <div class="list-panel-footer">
-      <button class="list-btn export" onclick="exportCSV()">CSV書き出し</button>
-      <button class="list-btn import" onclick="document.getElementById('csvInput').click()">インポート</button>
+      <button class="list-btn import" style="flex:1;border-radius:var(--radius-sm);cursor:pointer" onclick="clearTour()">リセット</button>
     </div>
   </div>
 </div>
@@ -501,9 +448,10 @@ textarea.form-input{height:70px;resize:none}
       <button class="action-btn" onclick="editCustomer()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>編集
       </button>
-      <button class="action-btn" onclick="addToTour(state.detailId);closeDetail()" style="color:#22c55e;border-color:#86efac">
+      <button class="action-btn" onclick="addToTour(state.detailId)" style="color:#22c55e;border-color:#86efac">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>巡回追加
       </button>
+
       <button class="action-btn" id="calBtn" style="display:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>カレンダー
       </button>
@@ -536,7 +484,12 @@ const db=getFirestore(app);
 window.$db=db;window.$col=collection;window.$doc=doc;
 window.$add=addDoc;window.$upd=updateDoc;window.$del=deleteDoc;
 window.$snap=onSnapshot;window.$q=query;window.$ord=orderBy;
-window.dispatchEvent(new Event('fbReady'));
+// メインscriptが読み込まれてから発火させる
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',()=>window.dispatchEvent(new Event('fbReady')));
+}else{
+  setTimeout(()=>window.dispatchEvent(new Event('fbReady')),0);
+}
 </script>
 
 <script>
@@ -553,15 +506,7 @@ const state={
   myLocMarker:null,myLocRing:null,
   mapLoaded:false,
   deletingIds:{},
-  // 追従・コンパス
-  tracking:false,          // 現在地追従モード
-  watchId:null,            // geolocation.watchPosition ID
-  compassMode:'north',     // 'north'=真北固定 / 'heading'=進行方向
-  deviceHeading:0,         // デバイスの向き（度）
-  // 巡回
-  tourList:[],             // 巡回順の顧客IDリスト
-  tourIndex:0,             // 現在の巡回インデックス
-  tourActive:false         // 巡回中フラグ
+  tourList:[]  // 巡回リストの顧客IDリスト
 };
 
 // histMapを再構築（historiesが更新されるたびに呼ぶ）
@@ -697,8 +642,6 @@ window._initMap=function(){
 
   updateMarkers();
   goToCurrentLocation();
-  // 起動時から進行方向モードで開始
-  autoStartCompass();
 };
 
 (function loadMaps(){
@@ -859,620 +802,6 @@ function goToCurrentLocation(){
 }
 
 // ===== 現在地追従モード =====
-function toggleTracking(){
-  state.tracking=!state.tracking;
-  const btn=document.getElementById('trackBtn');
-  const bar=document.getElementById('trackBar');
-  if(state.tracking){
-    btn.style.background='#dbeafe';
-    bar.classList.add('active');
-    if(!navigator.geolocation){
-      toast('位置情報が使えません');
-      state.tracking=false;
-      btn.style.background='';
-      bar.classList.remove('active');
-      return;
-    }
-    toast('現在地追従をONにしました');
-    if(state.watchId)navigator.geolocation.clearWatch(state.watchId);
-    state.watchId=navigator.geolocation.watchPosition(
-      p=>{
-        const ll={lat:p.coords.latitude,lng:p.coords.longitude};
-        updateMyLocationMarker(ll);
-        if(state.tracking)state.map.panTo(ll);
-        if(state.tourActive)checkTourArrival(ll);
-      },
-      err=>{
-        toast('位置情報の取得に失敗しました（設定を確認してください）');
-        state.tracking=false;
-        btn.style.background='';
-        bar.classList.remove('active');
-      },
-      {enableHighAccuracy:true,maximumAge:3000,timeout:10000}
-    );
-  }else{
-    btn.style.background='';
-    bar.classList.remove('active');
-    if(state.watchId){navigator.geolocation.clearWatch(state.watchId);state.watchId=null;}
-    toast('現在地追従をOFFにしました');
-  }
-}
-
-// ===== コンパス =====
-function toggleCompass(){
-  const el=document.getElementById('mapCompass');
-  const needle=document.getElementById('compassNeedle');
-
-  function applyMode(){
-    const lbl=document.getElementById('compassLabel');
-    if(state.compassMode==='heading'){
-      // 真北に戻す
-      state.compassMode='north';
-      el.classList.remove('heading');
-      if(needle)needle.style.transform='rotate(0deg)';
-      window.removeEventListener('deviceorientation',onOrientation,true);
-      if(lbl)lbl.textContent='真北';
-      toast('真北モードに切替えました');
-    }else{
-      // 進行方向モード開始
-      state.compassMode='heading';
-      el.style.background='rgba(255,243,224,0.97)';
-      el.style.borderColor='#f59e0b';
-      window.addEventListener('deviceorientation',onOrientation,true);
-      if(lbl)lbl.textContent='方向';
-      toast('進行方向モード ON（コンパス針がデバイスの向きに合います）');
-    }
-  }
-
-  // iOS13以降はユーザー操作直後にrequestPermissionが必要
-  if(typeof DeviceOrientationEvent!=='undefined'&&
-     typeof DeviceOrientationEvent.requestPermission==='function'){
-    DeviceOrientationEvent.requestPermission()
-      .then(r=>{
-        if(r==='granted'){
-          applyMode();
-        }else{
-          toast('コンパスの許可が必要です（設定→Safari→モーションと方向）');
-        }
-      })
-      .catch(()=>applyMode());
-  }else{
-    applyMode();
-  }
-}
-
-function onOrientation(e){
-  let heading=0;
-  if(e.webkitCompassHeading!=null&&e.webkitCompassHeading!==0){
-    heading=e.webkitCompassHeading; // iOS（最も正確）
-  }else if(e.alpha!=null){
-    heading=(360-e.alpha+360)%360;  // Android
-  }else{
-    return; // データなし
-  }
-
-  // 平滑化（前回値と補間してガタつきを減らす）
-  if(state.deviceHeading==null) state.deviceHeading=heading;
-  let diff=heading-state.deviceHeading;
-  if(diff>180) diff-=360;
-  if(diff<-180) diff+=360;
-  heading=state.deviceHeading+diff*0.3; // 30%ずつ近づける
-  state.deviceHeading=heading;
-
-  // コンパス針を回転（針が現在の向きを指す）
-  const needle=document.getElementById('compassNeedle');
-  if(needle) needle.style.transform='rotate('+(heading)+'deg)';
-
-  // ※地図自体の回転はブラウザAPIの制限で対応不可。針のみ回転。
-}
-
-function startCompass(){} // 後方互換のため残す
-function stopCompass(){
-  window.removeEventListener('deviceorientation',onOrientation,true);
-}
-
-// 起動時に自動でコンパスを進行方向モードで開始
-function autoStartCompass(){
-  state.compassMode='heading';
-  const el=document.getElementById('mapCompass');
-  if(el)el.classList.add('heading');
-
-  function beginListening(){
-    window.addEventListener('deviceorientation',onOrientation,true);
-  }
-  // iOS13以降は許可が必要
-  if(typeof DeviceOrientationEvent!=='undefined'&&
-     typeof DeviceOrientationEvent.requestPermission==='function'){
-    // 起動時は自動許可できないため、コンパスタップ時まで待つ
-    // compassModeだけheadingにしておき、許可はtoggleCompassで行う
-    return;
-  }
-  beginListening();
-}
-
-// ===== 巡回リスト =====
-function toggleTourPanel(){
-  const p=document.getElementById('tourPanel');
-  p.classList.toggle('open');
-  if(p.classList.contains('open'))renderTourPanel();
-}
-
-function renderTourPanel(){
-  const body=document.getElementById('tourBody');
-  if(!state.tourList.length){
-    body.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-sub);font-size:13px;">'
-      +'顧客詳細画面の「巡回追加」ボタンでリストに追加できます</div>';
-    return;
-  }
-  body.innerHTML=state.tourList.map((id,i)=>{
-    const c=state.customers.find(x=>x.id===id);
-    if(!c)return'';
-    const isDone=i<state.tourIndex;
-    const isCurrent=state.tourActive&&i===state.tourIndex;
-    const lh=getLatest(id);
-    return '<div class="tour-item" onclick="focusTourItem(\''+id+'\','+i+')">'
-      +'<div class="tour-num'+(isDone?' done':isCurrent?' current':'')+'">'
-      +(isDone?'<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>':i+1)
-      +'</div>'
-      +'<div class="tour-item-info">'
-      +'<div class="tour-item-name">'+c.name+'</div>'
-      +'<div class="tour-item-sub">'+(c.address||'住所なし')+'</div>'
-      +(lh?'<div class="tour-item-sub">最終: '+lh.date+' '+TYPE_LABEL[lh.type]+'</div>':'')
-      +'</div>'
-      +'<button onclick="removeTourItem(\''+id+'\',event)" style="background:none;border:none;color:var(--text-sub);cursor:pointer;padding:4px;flex-shrink:0">'
-      +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
-      +'</button>'
-      +'</div>';
-  }).join('');
-}
-
-function addToTour(customerId){
-  if(state.tourList.includes(customerId)){toast('すでに巡回リストにあります');return;}
-  state.tourList.push(customerId);
-  const c=state.customers.find(x=>x.id===customerId);
-  toast((c?.name||'顧客')+'を巡回リストに追加しました');
-}
-
-function removeTourItem(id,e){
-  e.stopPropagation();
-  state.tourList=state.tourList.filter(x=>x!==id);
-  if(state.tourIndex>=state.tourList.length)state.tourIndex=Math.max(0,state.tourList.length-1);
-  renderTourPanel();
-}
-
-function clearTour(){
-  if(!confirm('巡回リストをリセットしますか？'))return;
-  state.tourList=[];state.tourIndex=0;state.tourActive=false;
-  document.getElementById('quickVisit').classList.remove('active');
-  renderTourPanel();
-}
-
-function startTour(){
-  if(!state.tourList.length){toast('巡回リストが空です');return;}
-  state.tourIndex=0;state.tourActive=true;
-  toggleTourPanel();
-  goToTourTarget();
-  toast('巡回を開始しました');
-}
-
-function goToTourTarget(){
-  if(!state.tourActive||state.tourIndex>=state.tourList.length){
-    state.tourActive=false;
-    document.getElementById('quickVisit').classList.remove('active');
-    toast('巡回が完了しました！お疲れ様でした');
-    return;
-  }
-  const id=state.tourList[state.tourIndex];
-  const c=state.customers.find(x=>x.id===id);
-  if(!c)return;
-  // 地図をその顧客にフォーカス
-  focusPin(id);
-  // クイック訪問ボタンを表示
-  document.getElementById('quickVisit').classList.add('active');
-  toast((state.tourIndex+1)+'/'+state.tourList.length+' '+c.name+'へ移動中');
-}
-
-function focusTourItem(id,index){
-  state.tourIndex=index;
-  focusPin(id);
-}
-
-function checkTourArrival(ll){
-  if(!state.tourActive)return;
-  const id=state.tourList[state.tourIndex];
-  const c=state.customers.find(x=>x.id===id);
-  if(!c||c.lat==null)return;
-  // 50m以内に近づいたら通知
-  const d=getDistanceM(ll.lat,ll.lng,c.lat,c.lng);
-  if(d<50) toast('到着しました：'+c.name);
-}
-
-function getDistanceM(lat1,lng1,lat2,lng2){
-  const R=6371000;
-  const dLat=(lat2-lat1)*Math.PI/180;
-  const dLng=(lng2-lng1)*Math.PI/180;
-  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-// ===== クイック訪問完了 =====
-function quickVisitComplete(){
-  if(!state.tourActive)return;
-  const id=state.tourList[state.tourIndex];
-  const c=state.customers.find(x=>x.id===id);
-  if(!c)return;
-  const now=new Date();
-  // 訪問履歴を即座に保存
-  addH({
-    customerId:id,
-    type:'visit',
-    date:now.toISOString().split('T')[0],
-    time:now.toTimeString().slice(0,5),
-    note:'巡回訪問',
-    statusChange:null
-  });
-  toast(c.name+'の訪問を記録しました');
-  // 次の顧客へ
-  state.tourIndex++;
-  goToTourTarget();
-}
-
-function toggleAllBubbles(){
-  state.allBubbles=!state.allBubbles;
-  Object.entries(state.markers).forEach(([id,m])=>{
-    if(state.allBubbles)state.infoWindows[id]?.open(state.map,m);
-    else state.infoWindows[id]?.close();
-  });
-  document.getElementById('bubbleBtn').style.background=state.allBubbles?'#f59e0b20':'';
-  toast(state.allBubbles?'全吹き出しを表示':'全吹き出しを閉じました');
-}
-
-function toggleListPanel(){
-  const p=document.getElementById('listPanel');
-  p.classList.toggle('open');
-  if(p.classList.contains('open'))renderListPanel();
-}
-
-function renderListPanel(){
-  const body=document.getElementById('listPanelBody');
-  if(!body)return;
-  const arr=state.customers.filter(c=>state.mapFilter==='all'||c.status===c.status);
-  const filtered=state.customers.filter(c=>state.mapFilter==='all'||c.status===state.mapFilter);
-  document.getElementById('listPanelTitle').textContent=`ピン一覧（${filtered.length}件）`;
-  if(!filtered.length){body.innerHTML='<div class="empty"><p>該当する顧客がいません</p></div>';return;}
-  const hist=id=>getLatest(id);
-  body.innerHTML=filtered.map(c=>{
-    const lh=hist(c.id);
-    const sc=STATUS_COLOR[c.status]||'#2563eb';
-    return `<div class="list-item" onclick="focusPin('${c.id}')">
-      <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="${sc}"/></svg>
-      <div class="list-item-info">
-        <div class="list-item-name">${c.name}</div>
-        ${c.address?`<div class="list-item-sub">${c.address}</div>`:''}
-        ${lh?`<div class="list-item-sub">${TYPE_LABEL[lh.type]||''} ${lh.date}${lh.note?' - '+lh.note.slice(0,15):''}</div>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function focusPin(id){
-  const c=state.customers.find(x=>x.id===id);
-  if(!c||c.lat==null)return;
-  state.map?.panTo({lat:c.lat,lng:c.lng});
-  state.map?.setZoom(17);
-  if(state.infoWindows[id]&&state.markers[id])state.infoWindows[id].open(state.map,state.markers[id]);
-}
-
-function addAtCurrentLocation(){
-  if(!navigator.geolocation){alert('位置情報が使えません');return}
-  toast('現在地を取得中...');
-  navigator.geolocation.getCurrentPosition(p=>addAtLatLng(p.coords.latitude,p.coords.longitude),()=>toast('位置情報の取得に失敗しました'));
-}
-
-// ===== 住所検索 =====
-function searchMapAddress(){
-  const q = document.getElementById('mapSearchInput').value.trim();
-  if(!q){ toast('住所を入力してください'); return; }
-  if(!state.map){ toast('地図が読み込まれていません'); return; }
-  toast('検索中...');
-  new google.maps.Geocoder().geocode(
-    { address: q, region: 'JP' },
-    function(res, status){
-      if(status === 'OK' && res[0]){
-        const loc = res[0].geometry.location;
-        state.map.panTo(loc);
-        state.map.setZoom(17);
-        // 一時マーカー（赤いアニメーション）を表示
-        if(window._searchMarker) window._searchMarker.setMap(null);
-        window._searchMarker = new google.maps.Marker({
-          position: loc,
-          map: state.map,
-          title: res[0].formatted_address,
-          icon:{
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 12,
-            fillColor: '#ef4444',
-            fillOpacity: 1,
-            strokeColor: '#fff',
-            strokeWeight: 3
-          },
-          animation: google.maps.Animation.DROP,
-          zIndex: 9999
-        });
-        // 吹き出しで住所を表示
-        const cleanAddr = res[0].formatted_address
-          .replace(/^日本[、,，]\s*/, '')
-          .replace(/〒[\d\-]+\s*/g, '')
-          .trim();
-        const iw = new google.maps.InfoWindow({
-          content: '<div style="font-family:-apple-system,sans-serif;padding:4px;max-width:220px;">'
-            + '<div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:6px;">' + cleanAddr + '</div>'
-            + '<button onclick="window._searchAddHere()" style="width:100%;padding:8px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">この場所に顧客を追加</button>'
-            + '</div>'
-        });
-        iw.open(state.map, window._searchMarker);
-        // 「この場所に追加」ボタンのハンドラ
-        window._searchAddHere = function(){
-          iw.close();
-          window._searchMarker.setMap(null);
-          addAtLatLng(loc.lat(), loc.lng());
-        };
-        toast('「この場所に顧客を追加」で登録できます');
-      } else {
-        toast('住所が見つかりませんでした');
-      }
-    }
-  );
-}
-
-// ===== 地図中心で場所追加 =====
-function startMapAdd(){
-  // 十字線と確認バーを表示
-  document.getElementById('mapCrosshair').classList.add('active');
-  document.getElementById('mapAddBar').classList.add('active');
-  document.getElementById('mapAddBtn').style.background='#ede9fe';
-  toast('地図をスクロールして追加したい場所を中心に合わせてください');
-}
-function cancelMapAdd(){
-  document.getElementById('mapCrosshair').classList.remove('active');
-  document.getElementById('mapAddBar').classList.remove('active');
-  document.getElementById('mapAddBtn').style.background='';
-}
-function confirmMapAdd(){
-  if(!state.map)return;
-  const center=state.map.getCenter();
-  cancelMapAdd();
-  addAtLatLng(center.lat(),center.lng());
-}
-
-function cleanAddress(fa){
-  if(!fa)return'';
-  return fa
-    .replace(/^日本[、,，。\s]*/g,'')  // 先頭の「日本、」を除去
-    .replace(/〒[\d\-]+\s*/g,'')      // 「〒xxx-xxxx」をどこでも除去
-    .replace(/^日本\s*/g,'')            // 残った「日本」を除去
-    .replace(/,\s*日本\s*$/g,'')       // 末尾の「, 日本」を除去
-    .trim();
-}
-
-function addAtLatLng(lat,lng){
-  if(!google?.maps?.Geocoder){openCustomerModal('',lat,lng);return}
-  toast('住所を取得中...');
-  new google.maps.Geocoder().geocode({location:{lat,lng},language:'ja'},(res,status)=>{
-    let addr='';
-    if(status==='OK'&&res?.length){
-      // 最も詳細な住所を選ぶ（丁目・番地レベルを優先）
-      const candidates=res
-        .map(r=>cleanAddress(r.formatted_address||''))
-        .filter(a=>a.length>5);
-      // 都道府県を含む最初の候補を採用
-      addr=candidates.find(a=>/[都道府県]/.test(a))||candidates[0]||'';
-    }
-    openCustomerModal(addr,lat,lng);
-  });
-}
-
-/* ===== CUSTOMER MODAL ===== */
-let pendingLatLng=null;
-function openCustomerModal(prefillAddr='',lat=null,lng=null){
-  state.editCustId=null;pendingLatLng=lat!=null?{lat,lng}:null;
-  document.getElementById('custModalTitle').textContent=prefillAddr?'この場所に顧客追加':'顧客を追加';
-  document.getElementById('f_name').value='';document.getElementById('f_phone').value='';
-  document.getElementById('f_status').value='hot';document.getElementById('f_address').value=prefillAddr;
-  document.getElementById('f_needs').value='';document.getElementById('f_next').value='';
-  document.getElementById('f_memo').value='';
-  document.getElementById('firstHistSection').style.display='block';
-  const now=new Date();
-  document.getElementById('fh_type').value='visit';
-  document.getElementById('fh_date').value=now.toISOString().split('T')[0];
-  document.getElementById('fh_time').value=now.toTimeString().slice(0,5);
-  document.getElementById('fh_note').value='';
-  document.getElementById('custOverlay').classList.add('open');
-}
-
-function saveCustomer(){
-  const name=document.getElementById('f_name').value.trim();
-  if(!name){alert('氏名を入力してください');return}
-  const data={
-    name,phone:document.getElementById('f_phone').value.trim(),
-    status:document.getElementById('f_status').value,
-    address:document.getElementById('f_address').value.trim(),
-    needs:document.getElementById('f_needs').value.trim(),
-    nextVisit:document.getElementById('f_next').value,
-    memo:document.getElementById('f_memo').value.trim(),
-    lat:null,lng:null
-  };
-  if(state.editCustId){
-    const orig=state.customers.find(c=>c.id===state.editCustId);
-    if(orig&&orig.address!==data.address){data.lat=null;data.lng=null}
-    else if(orig){data.lat=orig.lat??null;data.lng=orig.lng??null}
-    updC(state.editCustId,data).then(()=>toast('顧客情報を更新しました'));
-  }else{
-    if(pendingLatLng){data.lat=pendingLatLng.lat;data.lng=pendingLatLng.lng;pendingLatLng=null}
-    addC(data).then(ref=>{
-      const hDate=document.getElementById('fh_date').value;
-      if(hDate)addH({customerId:ref.id,type:document.getElementById('fh_type').value,
-        date:hDate,time:document.getElementById('fh_time').value,
-        note:document.getElementById('fh_note').value.trim(),statusChange:null});
-      toast('顧客を追加しました');
-    });
-  }
-  closeOverlay('custOverlay');
-}
-
-function editCustomer(){
-  const c=state.customers.find(x=>x.id===state.detailId);
-  if(!c)return;
-  state.editCustId=state.detailId;
-  document.getElementById('custModalTitle').textContent='顧客を編集';
-  document.getElementById('f_name').value=c.name;document.getElementById('f_phone').value=c.phone||'';
-  document.getElementById('f_status').value=c.status;document.getElementById('f_address').value=c.address||'';
-  document.getElementById('f_needs').value=c.needs||'';document.getElementById('f_next').value=c.nextVisit||'';
-  document.getElementById('f_memo').value=c.memo||'';
-  document.getElementById('firstHistSection').style.display='none';
-  closeDetail();
-  document.getElementById('custOverlay').classList.add('open');
-}
-
-function deleteCustomer(){
-  if(!confirm('この顧客を削除しますか？'))return;
-  const id=state.detailId;closeDetail();
-  state.deletingIds[id]=true;
-  if(state.markers[id]){state.markers[id].setMap(null);delete state.markers[id]}
-  if(state.infoWindows[id]){state.infoWindows[id].close();delete state.infoWindows[id]}
-  delC(id).then(()=>{
-    getHist(id).forEach(h=>delH(h.id));
-    toast('顧客を削除しました');
-    setTimeout(()=>delete state.deletingIds[id],3000);
-  });
-  renderListPanel();
-}
-
-/* ===== HISTORY MODAL ===== */
-function openHistoryModal(custId){
-  if(!state.customers.length){alert('先に顧客を追加してください');return}
-  state.editHistId=null;
-  document.getElementById('histModalTitle').textContent='営業履歴を記録';
-  document.getElementById('histSaveBtn').textContent='記録する';
-  const sel=document.getElementById('h_customer');
-  sel.innerHTML=state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  sel.disabled=false;
-  if(custId)sel.value=custId;
-  const now=new Date();
-  document.getElementById('h_type').value='visit';
-  document.getElementById('h_date').value=now.toISOString().split('T')[0];
-  document.getElementById('h_time').value=now.toTimeString().slice(0,5);
-  document.getElementById('h_note').value='';
-  document.getElementById('h_status').value='';
-  document.getElementById('h_next').value='';
-  document.getElementById('histOverlay').classList.add('open');
-}
-
-function editHistoryItem(id){
-  const h=state.histories.find(x=>x.id===id);
-  if(!h)return;
-  state.editHistId=id;
-  document.getElementById('histModalTitle').textContent='営業履歴を編集';
-  document.getElementById('histSaveBtn').textContent='更新する';
-  const sel=document.getElementById('h_customer');
-  sel.innerHTML=state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  sel.value=h.customerId;sel.disabled=false;
-  document.getElementById('h_type').value=h.type||'visit';
-  document.getElementById('h_date').value=h.date||'';
-  document.getElementById('h_time').value=h.time||'';
-  document.getElementById('h_note').value=h.note||'';
-  document.getElementById('h_status').value=h.statusChange||'';
-  document.getElementById('h_next').value='';
-  document.getElementById('histOverlay').classList.add('open');
-}
-
-function saveHistory(){
-  const date=document.getElementById('h_date').value;
-  if(!date){alert('日付を入力してください');return}
-  const cid=document.getElementById('h_customer').value;
-  const sc=document.getElementById('h_status').value;
-  const nv=document.getElementById('h_next').value;
-  const data={customerId:cid,type:document.getElementById('h_type').value,
-    date,time:document.getElementById('h_time').value,
-    note:document.getElementById('h_note').value.trim(),statusChange:sc||null};
-  if(state.editHistId){
-    updH(state.editHistId,data).then(()=>toast('履歴を更新しました'));
-    state.editHistId=null;
-  }else{
-    addH(data);
-    if(sc||nv){const u={};if(sc)u.status=sc;if(nv)u.nextVisit=nv;updC(cid,u)}
-    toast('履歴を記録しました');
-  }
-  closeOverlay('histOverlay');
-}
-
-function deleteHistItem(id){
-  delH(id).then(()=>toast('履歴を削除しました'));
-}
-
-/* ===== DETAIL ===== */
-function openDetail(id){
-  const c=state.customers.find(x=>x.id===id);
-  if(!c)return;
-  state.detailId=id;
-  document.getElementById('detailName').textContent=c.name;
-  document.getElementById('detailBadge').innerHTML=`<span class="badge badge-${c.status}">${STATUS_LABEL[c.status]||''}</span>`;
-  let info='';
-  if(c.customerId)info+=`<div class="info-row"><span class="info-label">顧客ID</span><span class="info-value" style="font-family:monospace;letter-spacing:.05em">${c.customerId}</span></div>`;
-  if(c.phone)info+=`<div class="info-row"><span class="info-label">電話</span><span class="info-value"><a href="tel:${c.phone}" style="color:var(--primary)">${c.phone}</a></span></div>`;
-  if(c.address)info+=`<div class="info-row"><span class="info-label">住所</span><span class="info-value">${c.address}</span></div>`;
-  if(c.needs)info+=`<div class="info-row"><span class="info-label">ニーズ</span><span class="info-value">${c.needs}</span></div>`;
-  if(c.nextVisit){
-    const d=dayDiff(c.nextVisit);
-    const s=d<0?'color:var(--hot);font-weight:600':d===0?'color:var(--warm);font-weight:600':'';
-    info+=`<div class="info-row"><span class="info-label">次回訪問</span><span class="info-value" style="${s}">${c.nextVisit}${d<0?' ('+Math.abs(d)+'日超過)':d===0?' (今日!)':''}</span></div>`;
-  }
-  if(c.memo)info+=`<div class="info-row"><span class="info-label">メモ</span><span class="info-value">${c.memo}</span></div>`;
-  document.getElementById('detailInfo').innerHTML=info;
-  // call btn
-  const cb=document.getElementById('callBtn');
-  if(c.phone){cb.style.display='';cb.onclick=()=>{if(confirm(`${c.name}さんに電話しますか?\n${c.phone}`))location.href='tel:'+c.phone.replace(/[^0-9+]/g,'')}}
-  else cb.style.display='none';
-  // cal btn
-  const calb=document.getElementById('calBtn');
-  if(c.nextVisit){const dt=c.nextVisit.replace(/-/g,'');calb.style.display='';calb.onclick=()=>window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(c.name+' 訪問')}&dates=${dt}/${dt}`,'_blank')}
-  else calb.style.display='none';
-  // map btn
-  const mb=document.getElementById('mapBtn');
-  if(c.address){mb.style.display='';mb.onclick=()=>window.open(`https://www.google.com/maps/search/${encodeURIComponent(c.address)}`,'_blank')}
-  else mb.style.display='none';
-  renderDetailHistory(id);
-  document.getElementById('detail').classList.add('open');
-}
-
-function renderDetailHistory(id){
-  const cHist=getHist(id);
-  const el=document.getElementById('detailHistList');
-  if(!el)return;
-  el.innerHTML=cHist.length?cHist.map(h=>`
-    <div class="hist-item">
-      <div class="hist-icon" style="background:${TYPE_COLOR[h.type]||'#64748b'}">${svgIcon(h.type)}</div>
-      <div class="hist-body">
-        <div class="hist-type">${TYPE_LABEL[h.type]||''}</div>
-        <div class="hist-meta">${h.date}${h.time?' '+h.time:''}</div>
-        ${h.note?`<div class="hist-note">${h.note}</div>`:''}
-        ${h.statusChange?`<div style="font-size:12px;color:var(--primary);margin-top:2px;">→ ${STATUS_LABEL[h.statusChange]||''}</div>`:''}
-      </div>
-      <div class="hist-actions">
-        <button class="icon-btn edit" onclick="editHistoryItem('${h.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="icon-btn del" onclick="deleteHistItem('${h.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        </button>
-      </div>
-    </div>`).join('')
-  :'<div style="color:var(--text-sub);font-size:13px;padding:10px 0;text-align:center;">履歴なし</div>';
-}
-
-function closeDetail(){document.getElementById('detail').classList.remove('open');state.detailId=null}
-
-/* ===== CUSTOMERS RENDER ===== */
 function renderCustomers(){
   const el=document.getElementById('custList');
   const q=(document.getElementById('custSearch')?.value||'').trim().toLowerCase();
@@ -1567,6 +896,100 @@ function renderAlerts(){
     over.map(({c,d})=>item('over',`訪問超過 ${Math.abs(d)}日`,c)).join('')+
     today.map(({c})=>item('today','今日が訪問日',c)).join('')+
     soon.map(({c,d})=>item('soon',`${d}日後に訪問`,c)).join('');
+}
+
+/* ===== 巡回リスト ===== */
+function toggleTourPanel(){
+  const p=document.getElementById('tourPanel');
+  p.classList.toggle('open');
+  if(p.classList.contains('open'))renderTourPanel();
+}
+
+function addToTour(id){
+  if(!id)return;
+  if(state.tourList.includes(id)){toast('すでにリストにあります');return;}
+  state.tourList.push(id);
+  const c=state.customers.find(x=>x.id===id);
+  toast((c?.name||'顧客')+'を巡回リストに追加しました');
+  renderTourPanel();
+}
+
+function removeTourItem(id){
+  state.tourList=state.tourList.filter(x=>x!==id);
+  renderTourPanel();
+}
+
+function clearTour(){
+  if(!confirm('巡回リストをリセットしますか？'))return;
+  state.tourList=[];
+  renderTourPanel();
+  toast('リセットしました');
+}
+
+function renderTourPanel(){
+  const body=document.getElementById('tourBody');
+  const count=document.getElementById('tourCount');
+  if(count)count.textContent=state.tourList.length+'件';
+  if(!body)return;
+  if(!state.tourList.length){
+    body.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-sub);font-size:13px;">顧客詳細の「巡回追加」ボタンで追加できます</div>';
+    return;
+  }
+  body.innerHTML=state.tourList.map((id,i)=>{
+    const c=state.customers.find(x=>x.id===id);
+    if(!c)return'';
+    const lh=getLatest(id);
+    return '<div class="tour-item">'
+      +'<div class="tour-num">'+(i+1)+'</div>'
+      +'<div class="tour-item-info">'
+      +'<div class="tour-item-name">'+c.name+'</div>'
+      +'<div class="tour-item-sub">'+(c.address||'住所なし')+'</div>'
+      +(lh?'<div class="tour-item-sub">最終: '+lh.date+' '+TYPE_LABEL[lh.type]+'</div>':'')
+      +'</div>'
+      +'<div style="display:flex;gap:4px;flex-shrink:0;">'
+      // 上下移動ボタン
+      +(i>0?'<button class="icon-btn" onclick="moveTourItem('+i+',-1)" title="上へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg></button>':'<span style="width:22px"></span>')
+      +(i<state.tourList.length-1?'<button class="icon-btn" onclick="moveTourItem('+i+',1)" title="下へ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></button>':'<span style="width:22px"></span>')
+      +'<button class="icon-btn del" onclick="removeTourItem(\''+id+'\')" title="削除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function moveTourItem(index,dir){
+  const newIdx=index+dir;
+  if(newIdx<0||newIdx>=state.tourList.length)return;
+  const tmp=state.tourList[index];
+  state.tourList[index]=state.tourList[newIdx];
+  state.tourList[newIdx]=tmp;
+  renderTourPanel();
+}
+
+// Googleマップのナビ（経由地リスト）を開く
+function openGoogleMapsRoute(){
+  if(!state.tourList.length){toast('巡回リストが空です');return;}
+  const customers=state.tourList.map(id=>state.customers.find(x=>x.id===id)).filter(Boolean);
+  // 住所がある顧客のみ
+  const withAddr=customers.filter(c=>c.address);
+  if(!withAddr.length){toast('住所が登録された顧客がいません');return;}
+
+  if(withAddr.length===1){
+    // 1件のみ：目的地として開く
+    const url='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(withAddr[0].address)+'&travelmode=driving';
+    window.open(url,'_blank');
+    return;
+  }
+  // 複数件：最初を出発地、最後を目的地、中間を経由地に設定
+  const origin=withAddr[0].address;
+  const destination=withAddr[withAddr.length-1].address;
+  const waypoints=withAddr.slice(1,-1).map(c=>encodeURIComponent(c.address)).join('|');
+  let url='https://www.google.com/maps/dir/?api=1'
+    +'&origin='+encodeURIComponent(origin)
+    +'&destination='+encodeURIComponent(destination)
+    +'&travelmode=driving';
+  if(waypoints)url+='&waypoints='+waypoints;
+  window.open(url,'_blank');
+  toast('Googleマップを開きました（'+withAddr.length+'件）');
 }
 
 /* ===== CSV EXPORT ===== */
