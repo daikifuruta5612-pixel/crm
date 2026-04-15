@@ -468,29 +468,8 @@ textarea.form-input{height:70px;resize:none}
 </div>
 
 <!-- Firebase SDK -->
-<script type="module">
-import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import{getFirestore,collection,doc,addDoc,updateDoc,deleteDoc,onSnapshot,query,orderBy}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-const cfg={
-  apiKey:"AIzaSyANgJ4f6elnTMWW4sCbq4buAJ8aEfq8VW8",
-  authDomain:"sales-crm-5940b.firebaseapp.com",
-  projectId:"sales-crm-5940b",
-  storageBucket:"sales-crm-5940b.firebasestorage.app",
-  messagingSenderId:"996328269551",
-  appId:"1:996328269551:web:3f841199f689cb63139d1a"
-};
-const app=initializeApp(cfg);
-const db=getFirestore(app);
-window.$db=db;window.$col=collection;window.$doc=doc;
-window.$add=addDoc;window.$upd=updateDoc;window.$del=deleteDoc;
-window.$snap=onSnapshot;window.$q=query;window.$ord=orderBy;
-// メインscriptが読み込まれてから発火させる
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',()=>window.dispatchEvent(new Event('fbReady')));
-}else{
-  setTimeout(()=>window.dispatchEvent(new Event('fbReady')),0);
-}
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
 'use strict';
@@ -560,23 +539,22 @@ function generateCustomerId(){
 function addC(data){
   data.createdAt=Date.now();
   if(!data.customerId)data.customerId=generateCustomerId();
-  return window.$add(window.$col(window.$db,'customers'),data);
+  return window.$db.collection('customers').add(data);
 }
-function updC(id,data){return window.$upd(window.$doc(window.$db,'customers',id),data)}
-function delC(id){return window.$del(window.$doc(window.$db,'customers',id))}
-function addH(data){data.timestamp=Date.now();return window.$add(window.$col(window.$db,'histories'),data)}
-function updH(id,data){return window.$upd(window.$doc(window.$db,'histories',id),data)}
-function delH(id){return window.$del(window.$doc(window.$db,'histories',id))}
+function updC(id,data){return window.$db.collection('customers').doc(id).update(data)}
+function delC(id){return window.$db.collection('customers').doc(id).delete()}
+function addH(data){data.timestamp=Date.now();return window.$db.collection('histories').add(data)}
+function updH(id,data){return window.$db.collection('histories').doc(id).update(data)}
+function delH(id){return window.$db.collection('histories').doc(id).delete()}
 
-function startSync(){
+window.startSync = function startSync(){
   if(!window.$db)return;
   // customers
-  window.$snap(window.$q(window.$col(window.$db,'customers'),window.$ord('createdAt','desc')),snap=>{
+  window.$db.collection('customers').orderBy('createdAt','desc').onSnapshot(snap=>{
     const prev=state.customers.map(c=>c.id);
     state.customers=[];
     snap.forEach(d=>state.customers.push({id:d.id,...d.data()}));
     const curr=state.customers.map(c=>c.id);
-    // remove deleted markers
     prev.filter(id=>!curr.includes(id)).forEach(id=>{
       if(state.markers[id]){state.markers[id].setMap(null);delete state.markers[id]}
       if(state.infoWindows[id]){state.infoWindows[id].close();delete state.infoWindows[id]}
@@ -587,15 +565,13 @@ function startSync(){
     document.getElementById('loading').style.display='none';
   },()=>{setSyncStatus(false);document.getElementById('loading').style.display='none'});
   // histories
-  window.$snap(window.$q(window.$col(window.$db,'histories'),window.$ord('timestamp','desc')),snap=>{
+  window.$db.collection('histories').orderBy('timestamp','desc').onSnapshot(snap=>{
     state.histories=[];
     snap.forEach(d=>state.histories.push({id:d.id,...d.data()}));
-    rebuildHistMap(); // O(n)一回でMapを構築
+    rebuildHistMap();
     renderAll();
   });
 }
-
-window.addEventListener('fbReady',startSync);
 
 /* ===== RENDER ALL ===== */
 function renderAll(){
@@ -1044,6 +1020,19 @@ function importCSV(e){
 
 /* ===== OVERLAY CLOSE ON BACKDROP ===== */
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+/* ===== FIREBASE INIT ===== */
+// 全関数定義後に初期化・同期開始
+firebase.initializeApp({
+  apiKey:"AIzaSyANgJ4f6elnTMWW4sCbq4buAJ8aEfq8VW8",
+  authDomain:"sales-crm-5940b.firebaseapp.com",
+  projectId:"sales-crm-5940b",
+  storageBucket:"sales-crm-5940b.firebasestorage.app",
+  messagingSenderId:"996328269551",
+  appId:"1:996328269551:web:3f841199f689cb63139d1a"
+});
+window.$db=firebase.firestore();
+startSync();
 </script>
 </body>
 </html>
