@@ -841,7 +841,8 @@ function onOrientation(e){
   if(diff>180)diff-=360;if(diff<-180)diff+=360;
   heading=state.deviceHeading+diff*0.3;state.deviceHeading=heading;
   const needle=document.getElementById('compassNeedle');
-  if(needle)needle.style.transform='rotate('+heading+'deg)';
+  // 針は常に北を指すため、デバイスの向きと逆方向に回転させる
+  if(needle)needle.style.transform='rotate('+(-heading)+'deg)';
 }
 
 /* ===== 顧客モーダル ===== */
